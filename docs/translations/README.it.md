@@ -268,7 +268,7 @@ services:
     security_opt:
       - seccomp=unconfined                 # Required: Chromium in Docker
     ports:
-      - "3001:3001"                        # CloudCLI web UI
+      - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
       #
       # ./data/claude — Your settings, credentials, API keys, and Claude's memory.
@@ -334,16 +334,16 @@ services:
       # CloudCLI web UI — this is the only port you need.
       # Override the host-side port from `.env` if 3001 is already in use.
       #
-      - "${HOLYCLAUDE_HOST_PORT:-3001}:3001"
+      - "127.0.0.1:${HOLYCLAUDE_HOST_PORT:-3001}:3001"
       #
       # Dev server ports — uncomment as needed.
       # These let you access dev servers running inside the container from your host browser.
       #
-      # - "3000:3000"                      # Next.js / Express
-      # - "4321:4321"                      # Astro
-      # - "5173:5173"                      # Vite
-      # - "8787:8787"                      # Wrangler (Cloudflare Workers)
-      # - "9229:9229"                      # Node.js debugger
+      # - "127.0.0.1:3000:3000"            # Next.js / Express
+      # - "127.0.0.1:4321:4321"            # Astro
+      # - "127.0.0.1:5173:5173"            # Vite
+      # - "127.0.0.1:8787:8787"            # Wrangler (Cloudflare Workers)
+      # - "127.0.0.1:9229:9229"            # Node.js debugger
     volumes:
       #
       # PERSISTENT DATA
@@ -488,7 +488,7 @@ Questo non è un container minimale. Questa è un'intera workstation di sviluppo
 ### Entrambe le varianti (full + slim)
 
 <details>
-<summary><strong>Node.js 22 LTS + pacchetti npm globali</strong></summary>
+<summary><strong>Node.js 26 + pacchetti npm globali</strong></summary>
 
 | Pacchetto | A cosa serve |
 |---------|---------------|
@@ -790,7 +790,7 @@ Un bind mount verso un percorso SSD locale va bene, tienilo solo lontano da qual
 
 ## :lock: Permessi
 
-Claude Code viene eseguito in modalità **`allowEdits`** per impostazione predefinita. Questa è l'impostazione più sicura e utile:
+Claude Code viene eseguito in modalità **`acceptEdits`** per impostazione predefinita. Questa è l'impostazione inclusa nell'immagine:
 
 | Azione | Consentita? |
 |--------|----------|
@@ -811,7 +811,7 @@ Claude Code viene eseguito in modalità **`allowEdits`** per impostazione predef
 }
 ```
 
-> **La modalità bypass significa che Claude esegue qualsiasi comando senza conferma.** Veloce, potente, ed esattamente quello che vuoi se ti fidi di ciò che stai costruendo. Ma `allowEdits` è il valore predefinito sicuro per una ragione.
+> **La modalità bypass significa che Claude esegue comandi senza conferma.** È potente, ma può anche eseguire rapidamente comandi distruttivi. Mantieni il valore predefinito `acceptEdits` incluso nell'immagine a meno che tu non ti fidi del workspace e di ogni prompt.
 
 <p align="right">
   <a href="#top">↑ torna in cima</a>
@@ -858,7 +858,7 @@ Se devi assolutamente saltare il tunnel (tutorial di self-hosting, rete di lab i
 
 1. **Metti un reverse proxy davanti** (Caddy, nginx, Traefik) con TLS reale
 2. **Aggiungi IP allowlisting** a livello di firewall o proxy — solo i tuoi IP noti
-3. **Abilita `bypassPermissions: false`** (il default) così i comandi shell chiedono ancora conferma
+3. **Mantieni il valore predefinito `acceptEdits` incluso nell'immagine**, a meno che tu non abbia un motivo chiaro per usare `bypassPermissions`
 4. **Ruota le tue credenziali Anthropic** se qualcosa sembra strano
 5. **Esegui dietro Cloudflare Access o SSO simile**, non autenticazione base
 
@@ -932,7 +932,7 @@ image: coderluii/holyclaude:1.1.2   # instead of :latest
 
 CloudCLI si apre su `/home/claude` invece di `/workspace`.
 
-**Causa:** `WORKSPACES_ROOT` non raggiunge il processo CloudCLI. Le variabili d'ambiente di docker-compose non passano attraverso `s6-setuidgid` di s6-overlay — viene eseguito con un ambiente pulito per design (funzionalità di sicurezza, non un bug).
+**Causa:** Uno script di servizio CloudCLI personalizzato o modificato non ha impostato `WORKSPACES_ROOT=/workspace` prima di avviare CloudCLI.
 
 **Soluzione:** Già gestita in HolyClaude. Lo script di esecuzione s6 imposta `WORKSPACES_ROOT=/workspace` direttamente nell'ambiente del processo.
 </details>

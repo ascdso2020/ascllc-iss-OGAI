@@ -76,20 +76,23 @@ Runs once on first container start. Creates the sentinel file so it doesn't re-r
 - **Clean shutdown** — Graceful stop signals to all services
 - **Small footprint** — Minimal overhead
 
-#### Important: Clean environment
+#### Important: Service environment
 
-s6's `s6-setuidgid` runs services with a clean environment. Docker-compose environment variables are **not** automatically available to s6 services. Each service's `run` script must explicitly set needed variables in the `env` command. This is a security feature, not a bug.
+The CloudCLI service uses `#!/command/with-contenv sh`, so Docker Compose environment variables are available to the run script. The script still sets the service-critical values itself before dropping to the `claude` user, so CloudCLI always starts with the expected `HOME`, `WORKSPACES_ROOT`, and `NODE_OPTIONS` values.
 
 ### CloudCLI Service
 
 ```sh
 #!/bin/sh
 cd /workspace
-exec s6-setuidgid claude env HOME=/home/claude NODE_OPTIONS=--no-deprecation WORKSPACES_ROOT=/workspace claude-code-ui --port 3001
+export HOME=/home/claude
+export WORKSPACES_ROOT=/workspace
+export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--no-deprecation"
+exec s6-setuidgid claude claude-code-ui --port 3001
 ```
 
 - Runs as user `claude` (not root)
-- Sets `WORKSPACES_ROOT` directly (can't rely on docker-compose env vars due to s6 clean environment)
+- Sets `WORKSPACES_ROOT` directly so the web UI opens at `/workspace`
 - `NODE_OPTIONS=--no-deprecation` suppresses noisy deprecation warnings
 - Managed as a `longrun` service — auto-restarts on crash
 

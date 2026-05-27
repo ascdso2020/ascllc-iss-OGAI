@@ -16,6 +16,24 @@ assets/
 # Runtime data (should never be in build context)
 data/
 workspace/
+.omc/
+evidence/
+.evidence/
+
+# Environment and credentials
+.env
+.env.*
+credentials
+credentials.*
+.npmrc
+.yarnrc
+.pypirc
+
+# Local credential directories
+.ssh/
+.aws/
+.azure/
+.config/gcloud/
 
 # Editor files
 .vscode/
@@ -27,3 +45,26 @@ workspace/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Dependency caches
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Docker and local build artifacts
+.docker/
+docker-data/
+docker-compose.override.yaml
+docker-compose.override.yml
+*.pid
+*.log

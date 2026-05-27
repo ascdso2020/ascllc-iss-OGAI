@@ -23,7 +23,7 @@ services:
     security_opt:
       - seccomp=unconfined
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     volumes:
       - ./data/claude:/home/claude/.claude
       - ./workspace:/workspace
@@ -42,13 +42,13 @@ That's it. Open your browser, sign in, start building.
 
 🤖 **7 AI CLIs** — Claude Code, Gemini CLI, OpenAI Codex, Cursor, TaskMaster AI, Junie, OpenCode
 
-🌐 **CloudCLI Web UI** — Access your AI coding agents from any browser on port 3001
+🌐 **CloudCLI Web UI** — Access your AI coding agents from your Docker host at `127.0.0.1:3001`
 
 🖥️ **Headless Browser** — Chromium + Xvfb + Playwright, pre-configured for screenshots, testing, and automation
 
-🛠️ **50+ Dev Tools** — Node.js 22, Python 3, TypeScript, git, GitHub CLI, database clients (PostgreSQL, SQLite, Redis), deployment CLIs (Vercel, Wrangler, Netlify, Azure), and more
+🛠️ **50+ Dev Tools** — Node.js 26, Python 3, TypeScript, git, GitHub CLI, database clients (PostgreSQL, SQLite, Redis), deployment CLIs (Vercel, Wrangler, Netlify, Azure), and more
 
-⚙️ **s6-overlay v3** — Proper PID 1 process supervision with graceful shutdown and automatic service restarts
+⚙️ **s6-overlay 3.2.3.0** — Proper PID 1 process supervision with graceful shutdown and automatic service restarts
 
 🔒 **Security** — UID/GID remapping via PUID/PGID, no credential proxying, everything stays local
 

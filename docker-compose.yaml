@@ -18,7 +18,7 @@ services:
     security_opt:
       - seccomp=unconfined  # Required for Chromium in Docker
     ports:
-      - "3001:3001"     # CloudCLI web UI
+      - "127.0.0.1:3001:3001"     # CloudCLI web UI, localhost only
     volumes:
       - ./data/claude:/home/claude/.claude
       - ./workspace:/workspace

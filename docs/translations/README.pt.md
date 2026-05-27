@@ -268,7 +268,7 @@ services:
     security_opt:
       - seccomp=unconfined                 # Required: Chromium in Docker
     ports:
-      - "3001:3001"                        # CloudCLI web UI
+      - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
       #
       # ./data/claude — Your settings, credentials, API keys, and Claude's memory.
@@ -334,16 +334,16 @@ services:
       # CloudCLI web UI — this is the only port you need.
       # Override the host-side port from `.env` if 3001 is already in use.
       #
-      - "${HOLYCLAUDE_HOST_PORT:-3001}:3001"
+      - "127.0.0.1:${HOLYCLAUDE_HOST_PORT:-3001}:3001"
       #
       # Dev server ports — uncomment as needed.
       # These let you access dev servers running inside the container from your host browser.
       #
-      # - "3000:3000"                      # Next.js / Express
-      # - "4321:4321"                      # Astro
-      # - "5173:5173"                      # Vite
-      # - "8787:8787"                      # Wrangler (Cloudflare Workers)
-      # - "9229:9229"                      # Node.js debugger
+      # - "127.0.0.1:3000:3000"            # Next.js / Express
+      # - "127.0.0.1:4321:4321"            # Astro
+      # - "127.0.0.1:5173:5173"            # Vite
+      # - "127.0.0.1:8787:8787"            # Wrangler (Cloudflare Workers)
+      # - "127.0.0.1:9229:9229"            # Node.js debugger
     volumes:
       #
       # PERSISTENT DATA
@@ -488,7 +488,7 @@ Este não é um container mínimo. Esta é uma estação de trabalho de desenvol
 ### Ambas as variantes (full + slim)
 
 <details>
-<summary><strong>Node.js 22 LTS + pacotes globais npm</strong></summary>
+<summary><strong>Node.js 26 + pacotes globais npm</strong></summary>
 
 | Pacote | Para que serve |
 |---------|---------------|
@@ -790,7 +790,7 @@ Um bind mount para um caminho SSD local também funciona, só mantenha fora de q
 
 ## :lock: Permissions
 
-O Claude Code roda no modo **`allowEdits`** por padrão. Esta é a configuração mais segura e útil:
+O Claude Code roda no modo **`acceptEdits`** por padrão. Esta é a configuração enviada na imagem:
 
 | Ação | Permitido? |
 |--------|----------|
@@ -811,7 +811,7 @@ O Claude Code roda no modo **`allowEdits`** por padrão. Esta é a configuraçã
 }
 ```
 
-> **Modo bypass significa que Claude executa qualquer comando sem confirmação.** Rápido, poderoso e exatamente o que você quer se confia no que está construindo. Mas `allowEdits` é o padrão seguro por uma razão.
+> **Modo bypass significa que Claude executa comandos sem confirmação.** É poderoso, mas também pode executar comandos destrutivos rapidamente. Mantenha o padrão enviado `acceptEdits` a menos que confie no workspace e em cada prompt.
 
 <p align="right">
   <a href="#top">↑ voltar ao topo</a>
@@ -858,7 +858,7 @@ Se absolutamente precisar pular o tunnel (tutorial de self-hosting, rede de lab 
 
 1. **Coloque um reverse proxy na frente** (Caddy, nginx, Traefik) com TLS real
 2. **Adicione IP allowlisting** no firewall ou proxy — só seus IPs conhecidos
-3. **Ative `bypassPermissions: false`** (o padrão) para que comandos shell ainda peçam confirmação
+3. **Mantenha o padrão enviado `acceptEdits`**, a menos que você tenha um motivo claro para usar `bypassPermissions`
 4. **Rotacione suas credenciais Anthropic** se algo parecer errado
 5. **Execute atrás do Cloudflare Access ou SSO similar**, não autenticação básica
 
@@ -932,7 +932,7 @@ image: coderluii/holyclaude:1.1.2   # instead of :latest
 
 CloudCLI abre em `/home/claude` em vez de `/workspace`.
 
-**Causa:** `WORKSPACES_ROOT` não chegando ao processo CloudCLI. Variáveis de ambiente do docker-compose não passam pelo `s6-setuidgid` do s6-overlay, ele executa com um ambiente limpo por design (recurso de segurança, não um bug).
+**Causa:** Um script de serviço CloudCLI customizado ou modificado não definiu `WORKSPACES_ROOT=/workspace` antes de iniciar o CloudCLI.
 
 **Correção:** Já tratado no HolyClaude. O script de execução s6 define `WORKSPACES_ROOT=/workspace` diretamente no ambiente do processo.
 </details>

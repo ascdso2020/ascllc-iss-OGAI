@@ -23,7 +23,7 @@ You are running inside a **HolyClaude Docker container** (full variant). Everyth
 
 Both managed by s6-overlay — they auto-restart on failure.
 
-## Node.js & npm (v22 LTS)
+## Node.js & npm (v26)
 
 ### Global packages available:
 - **Languages:** typescript, tsx
@@ -144,10 +144,10 @@ Optional push notifications via [Apprise](https://github.com/caronc/apprise) —
 
 ## Permissions
 
-Claude Code runs in `allowEdits` mode by default:
+Claude Code runs in `acceptEdits` mode by default:
 - File edits: allowed without confirmation
-- Shell commands: asks for confirmation
-- To enable full bypass: change `allowEdits` to `bypassPermissions` in `~/.claude/settings.json`
+- Shell commands: follow Claude Code's current permission prompt behavior
+- To enable full bypass: change `acceptEdits` to `bypassPermissions` in `~/.claude/settings.json`
 
 ## Container Lifecycle
 

@@ -1,12 +1,25 @@
-# HolyClaude persistent data (created at runtime)
+# HolyClaude persistent data and local state (created at runtime)
 data/
 workspace/*
 !workspace/.gitkeep
+.omc/
+evidence/
+.evidence/
 
 # Environment files with secrets
 .env
+.env.*
 credentials
 credentials.*
+.npmrc
+.yarnrc
+.pypirc
+
+# Local credential directories
+.ssh/
+.aws/
+.azure/
+.config/gcloud/
 
 # OS files
 .DS_Store
@@ -22,7 +35,23 @@ desktop.ini
 
 # Node
 node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
 # Docker
 docker-compose.override.yaml
 docker-compose.override.yml
+.docker/
+docker-data/
+*.pid
+*.log

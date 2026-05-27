@@ -20,14 +20,14 @@ services:
     # extra_hosts:
     #   - "host.docker.internal:host-gateway"  # Linux: let the container reach services on the Docker host (e.g., Ollama)
     ports:
-      - "${HOLYCLAUDE_HOST_PORT:-3001}:3001"   # CloudCLI web UI
+      - "127.0.0.1:${HOLYCLAUDE_HOST_PORT:-3001}:3001"   # CloudCLI web UI, localhost only
       # --- Uncomment ports as needed ---
-      # - "3000:3000"         # Dev server (Next.js, Express)
-      # - "4321:4321"         # Astro dev
-      # - "5173:5173"         # Vite dev
-      # - "8787:8787"         # Wrangler dev
-      # - "9229:9229"         # Node.js debugger
-      # - "1455:1455"         # Codex auth callback port
+      # - "127.0.0.1:3000:3000"  # Dev server (Next.js, Express)
+      # - "127.0.0.1:4321:4321"  # Astro dev
+      # - "127.0.0.1:5173:5173"  # Vite dev
+      # - "127.0.0.1:8787:8787"  # Wrangler dev
+      # - "127.0.0.1:9229:9229"  # Node.js debugger
+      # - "127.0.0.1:1455:1455"  # Codex auth callback port
     volumes:
       - ${HOLYCLAUDE_HOST_CLAUDE_DIR:-./data/claude}:/home/claude/.claude
       - ${HOLYCLAUDE_HOST_WORKSPACE_DIR:-./workspace}:/workspace

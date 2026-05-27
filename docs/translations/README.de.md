@@ -268,7 +268,7 @@ services:
     security_opt:
       - seccomp=unconfined                 # Required: Chromium in Docker
     ports:
-      - "3001:3001"                        # CloudCLI web UI
+      - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
       #
       # ./data/claude — Your settings, credentials, API keys, and Claude's memory.
@@ -334,16 +334,16 @@ services:
       # CloudCLI web UI — this is the only port you need.
       # Override the host-side port from `.env` if 3001 is already in use.
       #
-      - "${HOLYCLAUDE_HOST_PORT:-3001}:3001"
+      - "127.0.0.1:${HOLYCLAUDE_HOST_PORT:-3001}:3001"
       #
       # Dev server ports — uncomment as needed.
       # These let you access dev servers running inside the container from your host browser.
       #
-      # - "3000:3000"                      # Next.js / Express
-      # - "4321:4321"                      # Astro
-      # - "5173:5173"                      # Vite
-      # - "8787:8787"                      # Wrangler (Cloudflare Workers)
-      # - "9229:9229"                      # Node.js debugger
+      # - "127.0.0.1:3000:3000"            # Next.js / Express
+      # - "127.0.0.1:4321:4321"            # Astro
+      # - "127.0.0.1:5173:5173"            # Vite
+      # - "127.0.0.1:8787:8787"            # Wrangler (Cloudflare Workers)
+      # - "127.0.0.1:9229:9229"            # Node.js debugger
     volumes:
       #
       # PERSISTENT DATA
@@ -488,7 +488,7 @@ Das ist kein minimaler Container. Das ist eine komplette Entwicklungsumgebung.
 ### Beide Varianten (full + slim)
 
 <details>
-<summary><strong>Node.js 22 LTS + npm globale Pakete</strong></summary>
+<summary><strong>Node.js 26 + npm globale Pakete</strong></summary>
 
 | Paket | Wofür |
 |---------|---------------|
@@ -790,7 +790,7 @@ Ein Bind-Mount zu einem lokalen SSD-Pfad ist auch in Ordnung, halte ihn nur von 
 
 ## :lock: Permissions
 
-Claude Code läuft standardmäßig im **`allowEdits`**-Modus. Das ist die sicherste nützliche Einstellung:
+Claude Code läuft standardmäßig im **`acceptEdits`**-Modus. Das ist die im Image gelieferte Einstellung:
 
 | Aktion | Erlaubt? |
 |--------|----------|
@@ -811,7 +811,7 @@ So betreibe ich es persönlich. Bearbeite `./data/claude/settings.json` auf dein
 }
 ```
 
-> **Bypass-Modus bedeutet, dass Claude jeden Befehl ohne Bestätigung ausführt.** Schnell, leistungsstark und genau das, was du willst, wenn du dem vertraust, was du baust. Aber `allowEdits` ist aus gutem Grund der sichere Standard.
+> **Bypass-Modus bedeutet, dass Claude Befehle ohne Bestätigung ausführt.** Er ist leistungsstark, kann aber auch schnell destruktive Befehle ausführen. Behalte den gelieferten Standard `acceptEdits`, außer du vertraust dem Workspace und jedem Prompt.
 
 <p align="right">
   <a href="#top">↑ nach oben</a>
@@ -858,7 +858,7 @@ Wenn du den Tunnel absolut überspringen musst (Self-Hosting-Tutorial, isolierte
 
 1. **Stelle einen Reverse Proxy davor** (Caddy, nginx, Traefik) mit echtem TLS
 2. **Füge IP-Allowlisting** auf Firewall- oder Proxy-Ebene hinzu — nur deine bekannten IPs
-3. **Aktiviere `bypassPermissions: false`** (der Standard), damit Shell-Befehle noch nachfragen
+3. **Behalte den gelieferten Standard `acceptEdits`**, außer du hast einen klaren Grund für `bypassPermissions`
 4. **Rotiere deine Anthropic-Zugangsdaten**, wenn etwas seltsam aussieht
 5. **Betreibe hinter Cloudflare Access oder ähnlichem SSO**, nicht Basic Auth
 
@@ -932,7 +932,7 @@ image: coderluii/holyclaude:1.1.2   # instead of :latest
 
 CloudCLI öffnet `/home/claude` statt `/workspace`.
 
-**Ursache:** `WORKSPACES_ROOT` erreicht den CloudCLI-Prozess nicht. Docker-Compose-Umgebungsvariablen werden nicht durch s6-overlays `s6-setuidgid` weitergegeben — es läuft aus Sicherheitsgründen mit einer sauberen Umgebung (Sicherheitsfunktion, kein Bug).
+**Ursache:** Ein angepasstes oder geändertes CloudCLI-Service-Skript hat `WORKSPACES_ROOT=/workspace` nicht gesetzt, bevor CloudCLI gestartet wurde.
 
 **Lösung:** Bereits in HolyClaude behandelt. Das s6-Run-Skript setzt `WORKSPACES_ROOT=/workspace` direkt in der Prozessumgebung.
 </details>

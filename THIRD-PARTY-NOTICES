@@ -10,30 +10,53 @@ licensed under MIT (see LICENSE).
 - Copyright: Simos Mikelatos / SiteBoon AI
 - Source: https://github.com/siteboon/claudecodeui
 - npm: https://www.npmjs.com/package/@siteboon/claude-code-ui
+- Version: 1.26.3, installed from HolyClaude's vendored source-release tarball
 
 CloudCLI is installed as a standalone program via npm and runs as an
 independent process managed by s6-overlay.
 
 ### Modification Notice
 
-HolyClaude applies a bugfix patch to CloudCLI's server/index.js during the
-Docker build. The patch preserves WebSocket frame types in the plugin proxy
-(see HolyClaude Issue #11). The exact changes are documented in the
-Dockerfile and consist of four sed replacements that add the isBinary
-parameter to WebSocket message relay handlers. This fix has been submitted
-upstream to the CloudCLI repository. The unmodified source is available at
-the links above, and the modification is fully visible in HolyClaude's
-public Dockerfile.
+HolyClaude applies the following CloudCLI patches during the Docker build.
+The exact commands are in the Dockerfile, and missing patch anchors fail the
+build.
+
+- WebSocket plugin proxy patch: preserves binary frame types in both relay
+  directions by passing the `isBinary` flag through CloudCLI's
+  `server/index.js` message handlers.
+- Shell scroll patch: preserves the Shell tab scroll position across periodic
+  refreshes in the bundled CloudCLI browser asset.
+- Issue #36 model patches: add `newModel` propagation from
+  `server/routes/commands.js` into the bundled browser code, update the
+  selected Claude model on model events, and keep a custom model option visible
+  in the selector.
+
+The unmodified upstream source is available from the links above, and the
+HolyClaude modifications are visible in the public Dockerfile.
+
+### Bundled CloudCLI Plugins
+
+HolyClaude builds and enables these CloudCLI plugins in the image:
+
+- `project-stats`: https://github.com/cloudcli-ai/cloudcli-plugin-starter,
+  pinned to commit `4895cd3fd33362471e739b786493aba048487bcc`.
+- `web-terminal`: https://github.com/cloudcli-ai/cloudcli-plugin-terminal,
+  pinned to commit `2bb28540ff5fda84972f99489f976551b8a552e8`.
+
+Each plugin remains under its upstream license. Inspect the plugin repositories
+for their source and license files.
 
 ## s6-overlay
 
 - License: ISC
 - Source: https://github.com/just-containers/s6-overlay
+- Version: 3.2.3.0
 
 ## Node.js
 
 - License: MIT
 - Source: https://github.com/nodejs/node
+- Version: 26.2.0 base image
 
 For a complete list of installed packages and their licenses, inspect the
 Docker image directly or refer to the Dockerfile.

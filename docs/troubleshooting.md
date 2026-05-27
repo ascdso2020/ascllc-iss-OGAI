@@ -10,9 +10,9 @@ Solutions to common issues when running HolyClaude.
 
 **Symptom:** CloudCLI web UI opens to `/home/claude` instead of `/workspace`.
 
-**Cause:** `WORKSPACES_ROOT` environment variable not reaching the CloudCLI process. Docker-compose env vars don't automatically pass through s6-overlay's `s6-setuidgid`.
+**Cause:** A custom or modified CloudCLI service script did not set `WORKSPACES_ROOT=/workspace` before launching CloudCLI.
 
-**Fix:** Already handled in HolyClaude — the s6 run script sets `WORKSPACES_ROOT=/workspace` directly. If you've modified the s6 service scripts, ensure the env var is set in the `env` command.
+**Fix:** Already handled in HolyClaude. The s6 run script uses `with-contenv`, exports `WORKSPACES_ROOT=/workspace`, then starts CloudCLI as the `claude` user. If you've modified the s6 service scripts, keep that export before the `claude-code-ui --port 3001` command.
 
 ---
 

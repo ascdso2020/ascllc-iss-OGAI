@@ -7,12 +7,12 @@
 #   docker build --build-arg VARIANT=slim -t holyclaude:slim .
 # ==============================================================================
 
-FROM node:22-bookworm-slim
+FROM node:26.2.0-bookworm-slim
 
 LABEL org.opencontainers.image.source=https://github.com/CoderLuii/HolyClaude
 
 # ---------- Build args ----------
-ARG S6_OVERLAY_VERSION=3.2.0.2
+ARG S6_OVERLAY_VERSION=3.2.3.0
 ARG TARGETARCH
 ARG VARIANT=full
 
@@ -92,7 +92,7 @@ RUN ln -sf /usr/bin/batcat /usr/local/bin/bat 2>/dev/null || true
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 # ---------- Create claude user ----------
-# node:22-bookworm-slim already has UID 1000 as 'node' — rename it to 'claude'
+# The official Node slim image already has UID 1000 as 'node' — rename it to 'claude'
 RUN usermod -l claude -d /home/claude -m node && \
     groupmod -n claude node && \
     echo "claude ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/claude && \
@@ -108,49 +108,49 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ---------- npm global packages (slim — always installed) ----------
 RUN npm i -g \
-    typescript tsx \
-    pnpm \
-    vite esbuild \
-    eslint prettier \
-    serve nodemon concurrently \
-    dotenv-cli
+    typescript@6.0.3 tsx@4.22.3 \
+    pnpm@11.3.0 \
+    vite@8.0.14 esbuild@0.28.0 \
+    eslint@10.4.0 prettier@3.8.3 \
+    serve@14.2.6 nodemon@3.1.14 concurrently@9.2.1 \
+    dotenv-cli@11.0.0
 
 # ---------- npm global packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g \
-      wrangler vercel netlify-cli \
-      pm2 \
-      prisma drizzle-kit \
-      eas-cli \
-      lighthouse @lhci/cli \
-      sharp-cli json-server http-server \
-      @marp-team/marp-cli @cloudflare/next-on-pages; \
+      wrangler@4.95.0 vercel@54.5.0 netlify-cli@26.0.2 \
+      pm2@7.0.1 \
+      prisma@7.8.0 drizzle-kit@0.31.10 \
+      eas-cli@19.1.0 \
+      lighthouse@13.3.0 @lhci/cli@0.15.1 \
+      sharp-cli@5.2.0 json-server@0.17.4 http-server@14.1.1 \
+      @marp-team/marp-cli@4.4.0 @cloudflare/next-on-pages@1.13.16; \
     fi
 
 # ---------- Python packages (slim — always installed) ----------
 RUN pip install --no-cache-dir --break-system-packages \
-    requests httpx beautifulsoup4 lxml \
-    Pillow \
-    pandas numpy \
-    openpyxl python-docx \
-    jinja2 pyyaml python-dotenv markdown \
-    rich click tqdm \
-    playwright \
-    apprise
+    requests==2.34.2 httpx==0.28.1 beautifulsoup4==4.14.3 lxml==6.1.1 \
+    Pillow==12.2.0 \
+    pandas==3.0.3 numpy==2.4.6 \
+    openpyxl==3.1.5 python-docx==1.2.0 \
+    jinja2==3.1.6 pyyaml==6.0.3 python-dotenv==1.2.2 markdown==3.10.2 \
+    rich==15.0.0 click==8.4.1 tqdm==4.67.3 \
+    playwright==1.60.0 \
+    apprise==1.10.0
 
 # ---------- Python packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     pip install --no-cache-dir --break-system-packages \
-      reportlab weasyprint cairosvg fpdf2 PyMuPDF pdfkit img2pdf \
-      xlsxwriter xlrd \
-      matplotlib seaborn \
-      python-pptx \
-      fastapi uvicorn \
-      httpie; \
+      reportlab==4.5.1 weasyprint==68.1 cairosvg==2.9.0 fpdf2==2.8.7 PyMuPDF==1.27.2.3 pdfkit==1.0.0 img2pdf==0.6.3 \
+      xlsxwriter==3.2.9 xlrd==2.0.2 \
+      matplotlib==3.10.9 seaborn==0.13.2 \
+      python-pptx==1.0.2 \
+      fastapi==0.136.3 uvicorn==0.48.0 \
+      httpie==3.2.4; \
     fi
 
 # ---------- AI CLI providers ----------
-RUN npm i -g @google/gemini-cli @openai/codex task-master-ai
+RUN npm i -g @google/gemini-cli@0.43.0 @openai/codex@0.134.0 task-master-ai@0.43.1
 USER claude
 RUN curl -fsSL https://cursor.com/install | bash
 USER root
@@ -164,7 +164,7 @@ USER root
 
 # ---------- OpenCode CLI (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g opencode-ai; \
+    npm i -g opencode-ai@1.15.10; \
     fi
 
 COPY vendor/artifacts/siteboon-claude-code-ui-1.26.3.tgz /tmp/vendor/siteboon-claude-code-ui-1.26.3.tgz
@@ -181,57 +181,67 @@ RUN CLOUDCLI_INDEX="/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/
     sed -i "s/clientWs.on('message', (data) => {/clientWs.on('message', (data, isBinary) => {/" "$CLOUDCLI_INDEX" && \
     sed -i "s/if (upstream.readyState === WebSocket.OPEN) upstream.send(data)/if (upstream.readyState === WebSocket.OPEN) upstream.send(data, { binary: isBinary })/" "$CLOUDCLI_INDEX" && \
     echo "[patch] WebSocket frame type fix applied (both directions)" || \
-    echo "[patch] WARNING: WebSocket pattern not found in vendored CloudCLI install, skipping patch"
+    (echo "[patch] ERROR: WebSocket pattern not found in vendored CloudCLI install"; exit 1)
 
 # patch: preserve Shell tab scroll position across periodic refresh (issue #35)
 RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
     grep -q 'const B=()=>{v.current?.focus()}' "$CLOUDCLI_BUNDLE" && \
     perl -pi -e 's/const B=\(\)=>\{v\.current\?\.focus\(\)\}/const B=()=>{const _vp=v.current?.buffer?.active?.viewportY??0;v.current?.focus();v.current?.scrollToLine(_vp)}/g' "$CLOUDCLI_BUNDLE" && \
     echo "[patch] Shell scroll position fix applied" || \
-    echo "[patch] WARNING: Shell scroll pattern not found in vendored CloudCLI bundle, skipping patch"
+    (echo "[patch] ERROR: Shell scroll pattern not found in vendored CloudCLI bundle"; exit 1)
 
 # patch v1.2.2-1: commands.js expose newModel in spawn args (issue #36)
 RUN CLOUDCLI_COMMANDS="/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/routes/commands.js" && \
     grep -q 'message: args.length > 0' "$CLOUDCLI_COMMANDS" && \
     perl -pi -e 's/^(\s+)(message: args\.length > 0)/$1newModel: args.length > 0 ? args[0] : null,\n$1$2/' "$CLOUDCLI_COMMANDS" && \
     echo "[patch] commands.js newModel field added" || \
-    echo "[patch] WARNING: commands.js newModel pattern not found, skipping patch"
+    (echo "[patch] ERROR: commands.js newModel pattern not found"; exit 1)
 
 # patch v1.2.2-2: bundle expose setClaudeModel in claudeModel context spread (issue #36)
 RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
     grep -q 'claudeModel:W,codexModel:V' "$CLOUDCLI_BUNDLE" && \
     perl -pi -e 's/\QclaudeModel:W,codexModel:V\E/claudeModel:W,setClaudeModel:L,codexModel:V/g' "$CLOUDCLI_BUNDLE" && \
     echo "[patch] bundle setClaudeModel context spread applied" || \
-    echo "[patch] WARNING: bundle claudeModel:W pattern not found, skipping patch"
+    (echo "[patch] ERROR: bundle claudeModel:W pattern not found"; exit 1)
 
 # patch v1.2.2-3: bundle wire setClaudeModel:lS2 into cursorModel destructure (issue #36)
 RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
     grep -q 'cursorModel:o,claudeModel:l,codexModel:c' "$CLOUDCLI_BUNDLE" && \
     perl -pi -e 's/\QcursorModel:o,claudeModel:l,codexModel:c\E/cursorModel:o,claudeModel:l,setClaudeModel:lS2,codexModel:c/g' "$CLOUDCLI_BUNDLE" && \
     echo "[patch] bundle setClaudeModel:lS2 destructure applied" || \
-    echo "[patch] WARNING: bundle cursorModel destructure pattern not found, skipping patch"
+    (echo "[patch] ERROR: bundle cursorModel destructure pattern not found"; exit 1)
 
 # patch v1.2.2-4: bundle apply newModel on SSE model event (issue #36)
 RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
     grep -q 'case"model":k({type:"assistant"' "$CLOUDCLI_BUNDLE" && \
     perl -pi -e 's/\Qcase"model":k({type:"assistant"\E/case"model":me.newModel\&\&lS2\&\&(lS2(me.newModel),localStorage.setItem("claude-model",me.newModel));k({type:"assistant"/g' "$CLOUDCLI_BUNDLE" && \
     echo "[patch] bundle SSE model event handler applied" || \
-    echo "[patch] WARNING: bundle case\"model\" pattern not found, skipping patch"
+    (echo "[patch] ERROR: bundle case\"model\" pattern not found"; exit 1)
 
 # patch v1.2.2-5: bundle add custom model option to select (issue #36)
 RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
     grep -q 'children:N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j))}' "$CLOUDCLI_BUNDLE" && \
     perl -pi -e 's/\Qchildren:N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j))}\E/children:[...N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j)),!N.OPTIONS.some(C=>C.value===k)\&\&k\&\&s.jsx("option",{value:k,children:k},k+"custom")].filter(Boolean)}/g' "$CLOUDCLI_BUNDLE" && \
     echo "[patch] bundle custom model select option applied" || \
-    echo "[patch] WARNING: bundle custom model select pattern not found, skipping patch"
+    (echo "[patch] ERROR: bundle custom model select pattern not found"; exit 1)
 
 # ---------- CloudCLI plugins (baked into image) ----------
 USER claude
 RUN mkdir -p /home/claude/.claude-code-ui/plugins && \
-    git clone --depth 1 https://github.com/cloudcli-ai/cloudcli-plugin-starter.git /home/claude/.claude-code-ui/plugins/project-stats && \
-    cd /home/claude/.claude-code-ui/plugins/project-stats && npm install && npm run build && \
-    git clone --depth 1 https://github.com/cloudcli-ai/cloudcli-plugin-terminal.git /home/claude/.claude-code-ui/plugins/web-terminal && \
-    cd /home/claude/.claude-code-ui/plugins/web-terminal && npm install && npm run build && \
+    git init /home/claude/.claude-code-ui/plugins/project-stats && \
+    cd /home/claude/.claude-code-ui/plugins/project-stats && \
+    git remote add origin https://github.com/cloudcli-ai/cloudcli-plugin-starter.git && \
+    git fetch --depth 1 origin 4895cd3fd33362471e739b786493aba048487bcc && \
+    git checkout --detach FETCH_HEAD && \
+    test "$(git rev-parse --short=12 HEAD)" = "4895cd3fd333" && \
+    npm install && npm run build && \
+    git init /home/claude/.claude-code-ui/plugins/web-terminal && \
+    cd /home/claude/.claude-code-ui/plugins/web-terminal && \
+    git remote add origin https://github.com/cloudcli-ai/cloudcli-plugin-terminal.git && \
+    git fetch --depth 1 origin 2bb28540ff5fda84972f99489f976551b8a552e8 && \
+    git checkout --detach FETCH_HEAD && \
+    test "$(git rev-parse --short=12 HEAD)" = "2bb28540ff5f" && \
+    npm install && npm run build && \
     echo '{"project-stats":{"name":"project-stats","source":"https://github.com/cloudcli-ai/cloudcli-plugin-starter","enabled":true},"web-terminal":{"name":"web-terminal","source":"https://github.com/cloudcli-ai/cloudcli-plugin-terminal","enabled":true}}' > /home/claude/.claude-code-ui/plugins.json
 USER root
 

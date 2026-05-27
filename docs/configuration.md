@@ -23,7 +23,7 @@ Docker Compose also supports a local `.env` file for variable interpolation. Hol
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HOLYCLAUDE_HOST_PORT` | `3001` | Host port mapped to container port `3001` |
+| `HOLYCLAUDE_HOST_PORT` | `3001` | Localhost port mapped to container port `3001` |
 | `HOLYCLAUDE_HOST_CLAUDE_DIR` | `./data/claude` | Host path bind-mounted to `/home/claude/.claude` |
 | `HOLYCLAUDE_HOST_WORKSPACE_DIR` | `./workspace` | Host path bind-mounted to `/workspace` |
 
@@ -116,7 +116,7 @@ Claude Code can authenticate via web UI (OAuth) or `ANTHROPIC_API_KEY`. Other AI
 
 | Port | Service | Default State |
 |------|---------|--------------|
-| `3001` | CloudCLI web UI | Exposed |
+| `127.0.0.1:3001` | CloudCLI web UI | Exposed on the Docker host only |
 | `3000` | Dev server (Next.js, Express) | Commented out |
 | `4321` | Astro dev server | Commented out |
 | `5173` | Vite dev server | Commented out |
@@ -124,7 +124,7 @@ Claude Code can authenticate via web UI (OAuth) or `ANTHROPIC_API_KEY`. Other AI
 | `9229` | Node.js debugger | Commented out |
 | `1455` | Codex auth callback | Commented out |
 
-Uncomment additional ports in `docker-compose.full.yaml` as needed. If you use Codex's callback flow from your host browser, also uncomment `1455:1455`.
+Uncomment additional ports in `docker-compose.full.yaml` as needed. Keep them bound to `127.0.0.1` unless you have a private tunnel or access proxy in front of them. If you use Codex's callback flow from your host browser, also uncomment `127.0.0.1:1455:1455`.
 
 ---
 
@@ -140,7 +140,7 @@ security_opt:
   - seccomp=unconfined  # Chromium syscall requirements
 ```
 
-These are standard for any Chromium-in-Docker setup. Without them, Chromium crashes on startup.
+These are common for Chromium-in-Docker setups. Without them, Chromium may crash on startup. They also reduce container isolation, so avoid publishing the web UI directly to a public interface.
 
 ---
 
@@ -161,7 +161,7 @@ The default `settings.json` at `~/.claude/settings.json`:
 ```json
 {
   "permissions": {
-    "defaultMode": "allowEdits"
+    "defaultMode": "acceptEdits"
   },
   "env": {
     "DISABLE_AUTOUPDATER": "1"
@@ -175,7 +175,7 @@ The default `settings.json` at `~/.claude/settings.json`:
 | Mode | File edits | Shell commands | Use case |
 |------|-----------|----------------|----------|
 | `askUser` | Asks | Asks | Maximum safety |
-| `allowEdits` | Allowed | Asks | **Default** — good balance |
+| `acceptEdits` | Allowed | Depends on Claude Code's current prompt behavior | **Default** — shipped setting |
 | `bypassPermissions` | Allowed | Allowed | Power users only |
 
 ### Changing the Model
