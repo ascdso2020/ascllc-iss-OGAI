@@ -49,7 +49,7 @@ npm i <package>           # Project-local install
 ## Python 3
 
 ### Installed packages:
-- **HTTP:** requests, httpx, httpie
+- **HTTP:** requests, httpx
 - **Scraping:** beautifulsoup4, lxml
 - **Images:** Pillow
 - **Data:** pandas, numpy, matplotlib, seaborn
@@ -84,7 +84,7 @@ The `--break-system-packages` flag is required (no venv in container context).
 ### Command-line utilities:
 - **Search:** ripgrep (`rg`), fd (`fdfind`), fzf, grep
 - **Files:** tree, bat (`batcat` or `bat`), jq, zip/unzip
-- **Network:** curl, wget, httpie, openssh-client
+- **Network:** curl, wget, openssh-client
 - **Process:** htop, lsof, strace, iproute2 (`ip`, `ss`)
 - **Terminal:** tmux
 - **Version control:** git, gh (GitHub CLI)

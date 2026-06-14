@@ -4,6 +4,23 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.8] - 06/14/2026
+
+### Changed
+- Refreshed the Docker runtime to Node.js 26.3.0 with npm 11.16.0 from the base image.
+- Replaced the deprecated `@siteboon/claude-code-ui` wrapper with the vendored `@cloudcli-ai/cloudcli` 1.34.0 package.
+- Updated pinned npm, Python, and GitHub Actions dependencies where current audited releases were available.
+- Documented Docker Hub compressed image sizes separately from the larger unpacked sizes Docker hosts and NAS tools can report.
+
+### Fixed
+- Patched CloudCLI self-update guards across both source and compiled runtime files so in-container npm updates cannot replace HolyClaude's patched runtime.
+- Updated the CloudCLI service command from the moved `claude-code-ui` binary to `cloudcli`.
+
+### Security
+- Removed `httpie` from the full image because PyPI/OSV still flags `httpie` 3.2.4 with `PYSEC-2023-242` / `CVE-2023-48052`.
+- Verified the vendored CloudCLI line is above the upstream fixes for `CVE-2026-31862` and `CVE-2026-31975`.
+- Hardened Docker publish workflow permissions and added Dependabot coverage for GitHub Actions.
+
 ## [1.2.7] - 06/13/2026
 
 ### Fixed

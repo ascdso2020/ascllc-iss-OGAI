@@ -24,7 +24,7 @@ HolyClaude is a single Docker container running multiple supervised services. Th
 │                                                  │
 │  s6-overlay (PID 1)                              │
 │    ├── cloudcli (longrun)                        │
-│    │     └── claude-code-ui --port 3001          │
+│    │     └── cloudcli --port 3001                │
 │    └── xvfb (longrun)                            │
 │          └── Xvfb :99 -screen 0 1920x1080x24    │
 │                                                  │
@@ -88,7 +88,7 @@ cd /workspace
 export HOME=/home/claude
 export WORKSPACES_ROOT=/workspace
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--no-deprecation"
-exec s6-setuidgid claude claude-code-ui --port 3001
+exec s6-setuidgid claude cloudcli --port 3001
 ```
 
 - Runs as user `claude` (not root)

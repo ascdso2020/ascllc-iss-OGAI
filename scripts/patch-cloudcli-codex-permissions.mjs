@@ -1,20 +1,15 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 
-const DEFAULT_CODEX_PATH = '/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/openai-codex.js';
-const cliTargetPath = process.argv[2];
-const CODEX_PATH = cliTargetPath || DEFAULT_CODEX_PATH;
+const DEFAULT_CLOUDCLI_ROOT = '/usr/local/lib/node_modules/@cloudcli-ai/cloudcli';
+const cliTarget = process.argv[2];
 const ERROR_MESSAGE = '[patch] ERROR: CloudCLI Codex permission mode anchors not found';
 const PATCH_MARKER = 'const HOLYCLAUDE_CODEX_CHAT_PERMISSION_PATCH = true;';
 const ENV_NAME = 'HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE';
 const ENV_CONSTANT = 'HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE_ENV';
 const MAP_ANCHOR = 'function mapPermissionModeToCodexOptions(permissionMode)';
 const QUERY_ANCHOR = 'export async function queryCodex(command, options = {}, ws)';
-const DESTRUCTURING_ANCHOR = "permissionMode = 'default'";
-const DESTRUCTURING_NEEDLE = "    permissionMode = 'default'\n  } = options;";
-const DESTRUCTURING_REPLACEMENT = "    permissionMode\n  } = options;";
-const WORKING_DIRECTORY_ANCHOR = '  const workingDirectory = cwd || projectPath || process.cwd();';
-const MAP_CALL_ANCHOR = 'const { sandboxMode, approvalPolicy } = mapPermissionModeToCodexOptions(permissionMode);';
-const MAP_CALL_REPLACEMENT = 'const { sandboxMode, approvalPolicy } = mapPermissionModeToCodexOptions(effectivePermissionMode);';
+const WORKING_DIRECTORY_PATTERN = /^(\s*)const workingDirectory = cwd \|\| projectPath \|\| process\.cwd\(\);/m;
+const MAP_CALL_PATTERN = /const \{ sandboxMode, approvalPolicy \} = mapPermissionModeToCodexOptions\(permissionMode\);/;
 
 const helperCode = `
 const HOLYCLAUDE_CODEX_CHAT_PERMISSION_PATCH = true;
@@ -51,14 +46,16 @@ function resolveCodexChatPermissionMode(permissionMode, hasExplicitPermissionMod
 }
 `;
 
-function hasHolyClaudeBackport(source) {
-  return source.includes(PATCH_MARKER)
-    && source.includes(`const ${ENV_CONSTANT} = '${ENV_NAME}';`)
-    && source.includes("const HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODES = new Set(['default', 'acceptEdits', 'bypassPermissions']);")
-    && source.includes('function getConfiguredCodexChatPermissionMode()')
-    && source.includes('function resolveCodexChatPermissionMode(permissionMode, hasExplicitPermissionMode)')
-    && source.includes("hasOwnProperty.call(options, 'permissionMode')")
-    && source.includes(MAP_CALL_REPLACEMENT);
+function resolveTargets() {
+  if (cliTarget && existsSync(cliTarget) && statSync(cliTarget).isFile()) {
+    return [{ label: 'target', path: cliTarget }];
+  }
+
+  const root = cliTarget || DEFAULT_CLOUDCLI_ROOT;
+  return [
+    { label: 'source', path: `${root}/server/openai-codex.js` },
+    { label: 'runtime', path: `${root}/dist-server/server/openai-codex.js` }
+  ].filter((target) => existsSync(target.path));
 }
 
 function hasFullHolyClaudeRuntimeContract(source) {
@@ -84,7 +81,7 @@ function hasFullHolyClaudeRuntimeContract(source) {
     && source.includes("sandboxMode: 'danger-full-access'")
     && source.includes("approvalPolicy: 'never'")
     && source.includes("approvalPolicy: 'untrusted'");
-  const hasResolvedMapCall = !source.includes(MAP_CALL_ANCHOR)
+  const hasResolvedMapCall = !MAP_CALL_PATTERN.test(source)
     && /mapPermissionModeToCodexOptions\(\s*(?:effective|resolved)\w*PermissionMode\s*\)/.test(source);
 
   return hasEnvFallback
@@ -122,62 +119,57 @@ function findFunctionEnd(source, functionAnchor) {
   return -1;
 }
 
-function readCodexSource() {
-  try {
-    return readFileSync(CODEX_PATH, 'utf8');
-  } catch (error) {
-    if (!cliTargetPath) {
-      throw error;
-    }
+function patchTarget(target) {
+  let source = readFileSync(target.path, 'utf8');
+
+  if (hasFullHolyClaudeRuntimeContract(source)) {
+    console.log(`[patch] CloudCLI Codex permission mode already applied (${target.label})`);
+    return;
+  }
+
+  const mapFunctionEndIndex = findFunctionEnd(source, MAP_ANCHOR);
+  const requiredAnchorsPresent = source.includes(MAP_ANCHOR)
+    && source.includes(QUERY_ANCHOR)
+    && /permissionMode\s*=\s*'default'/.test(source)
+    && WORKING_DIRECTORY_PATTERN.test(source)
+    && MAP_CALL_PATTERN.test(source)
+    && mapFunctionEndIndex !== -1;
+
+  if (!requiredAnchorsPresent) {
     console.error(ERROR_MESSAGE);
     process.exit(1);
   }
-}
 
-function writeCodexSource(source) {
-  try {
-    writeFileSync(CODEX_PATH, source);
-  } catch (error) {
-    if (!cliTargetPath) {
-      throw error;
-    }
+  if (!source.includes(PATCH_MARKER)) {
+    source = `${source.slice(0, mapFunctionEndIndex)}${helperCode}${source.slice(mapFunctionEndIndex)}`;
+  }
+
+  source = source.replace(/permissionMode\s*=\s*'default'/, 'permissionMode');
+  source = source.replace(WORKING_DIRECTORY_PATTERN, (_, indent) => [
+    `${indent}const hasExplicitPermissionMode = Object.prototype.hasOwnProperty.call(options, 'permissionMode');`,
+    `${indent}const effectivePermissionMode = resolveCodexChatPermissionMode(permissionMode, hasExplicitPermissionMode);`,
+    `${indent}const workingDirectory = cwd || projectPath || process.cwd();`
+  ].join('\n'));
+  source = source.replace(
+    MAP_CALL_PATTERN,
+    'const { sandboxMode, approvalPolicy } = mapPermissionModeToCodexOptions(effectivePermissionMode);'
+  );
+
+  if (!hasFullHolyClaudeRuntimeContract(source)) {
     console.error(ERROR_MESSAGE);
     process.exit(1);
   }
+
+  writeFileSync(target.path, source);
+  console.log(`[patch] CloudCLI Codex permission mode applied (${target.label})`);
 }
 
-let source = readCodexSource();
-
-if (hasHolyClaudeBackport(source)) {
-  console.log('[patch] CloudCLI Codex permission mode already applied');
-  process.exit(0);
-}
-
-if (hasFullHolyClaudeRuntimeContract(source)) {
-  console.log('[patch] CloudCLI Codex permission mode already supported upstream');
-  process.exit(0);
-}
-
-const requiredAnchorsPresent = source.includes(MAP_ANCHOR)
-  && source.includes(QUERY_ANCHOR)
-  && source.includes(DESTRUCTURING_ANCHOR)
-  && source.includes(DESTRUCTURING_NEEDLE)
-  && source.includes(WORKING_DIRECTORY_ANCHOR)
-  && source.includes(MAP_CALL_ANCHOR);
-const mapFunctionEndIndex = findFunctionEnd(source, MAP_ANCHOR);
-
-if (!requiredAnchorsPresent || mapFunctionEndIndex === -1) {
+const targets = resolveTargets();
+if (targets.length === 0) {
   console.error(ERROR_MESSAGE);
   process.exit(1);
 }
 
-source = `${source.slice(0, mapFunctionEndIndex)}${helperCode}${source.slice(mapFunctionEndIndex)}`;
-source = source.replace(DESTRUCTURING_NEEDLE, DESTRUCTURING_REPLACEMENT);
-source = source.replace(
-  WORKING_DIRECTORY_ANCHOR,
-  "  const hasExplicitPermissionMode = Object.prototype.hasOwnProperty.call(options, 'permissionMode');\n  const effectivePermissionMode = resolveCodexChatPermissionMode(permissionMode, hasExplicitPermissionMode);\n  const workingDirectory = cwd || projectPath || process.cwd();"
-);
-source = source.replace(MAP_CALL_ANCHOR, MAP_CALL_REPLACEMENT);
-
-writeCodexSource(source);
-console.log('[patch] CloudCLI Codex permission mode applied');
+for (const target of targets) {
+  patchTarget(target);
+}

@@ -7,7 +7,7 @@
 #   docker build --build-arg VARIANT=slim -t holyclaude:slim .
 # ==============================================================================
 
-FROM node:26.2.0-bookworm-slim
+FROM node:26.3.0-bookworm-slim
 
 LABEL org.opencontainers.image.source=https://github.com/CoderLuii/HolyClaude
 
@@ -108,49 +108,49 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ---------- npm global packages (slim — always installed) ----------
 RUN npm i -g \
-    typescript@6.0.3 tsx@4.22.3 \
-    pnpm@11.3.0 \
-    vite@8.0.14 esbuild@0.28.0 \
-    eslint@10.4.0 prettier@3.8.3 \
-    serve@14.2.6 nodemon@3.1.14 concurrently@9.2.1 \
+    typescript@6.0.3 tsx@4.22.4 \
+    pnpm@11.6.0 \
+    vite@8.0.16 esbuild@0.28.1 \
+    eslint@10.5.0 prettier@3.8.4 \
+    serve@14.2.6 nodemon@3.1.14 concurrently@10.0.3 \
     dotenv-cli@11.0.0
 
 # ---------- npm global packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g \
-      wrangler@4.95.0 vercel@54.5.0 netlify-cli@26.0.2 \
+      wrangler@4.100.0 vercel@54.14.0 netlify-cli@26.1.0 \
       pm2@7.0.1 \
       prisma@7.8.0 drizzle-kit@0.31.10 \
-      eas-cli@19.1.0 \
-      lighthouse@13.3.0 @lhci/cli@0.15.1 \
-      sharp-cli@5.2.0 json-server@0.17.4 http-server@14.1.1 \
-      @marp-team/marp-cli@4.4.0 @cloudflare/next-on-pages@1.13.16; \
+      eas-cli@20.1.0 \
+      lighthouse@13.4.0 @lhci/cli@0.15.1 \
+      sharp-cli@5.2.0 json-server@1.0.0-beta.15 http-server@14.1.1 \
+      @marp-team/marp-cli@4.4.0 && \
+    npm i -g --legacy-peer-deps @cloudflare/next-on-pages@1.13.16; \
     fi
 
 # ---------- Python packages (slim — always installed) ----------
 RUN pip install --no-cache-dir --break-system-packages \
-    requests==2.34.2 httpx==0.28.1 beautifulsoup4==4.14.3 lxml==6.1.1 \
+    requests==2.34.2 httpx==0.28.1 beautifulsoup4==4.15.0 lxml==6.1.1 \
     Pillow==12.2.0 \
     pandas==3.0.3 numpy==2.4.6 \
     openpyxl==3.1.5 python-docx==1.2.0 \
     jinja2==3.1.6 pyyaml==6.0.3 python-dotenv==1.2.2 markdown==3.10.2 \
-    rich==15.0.0 click==8.4.1 tqdm==4.67.3 \
+    rich==15.0.0 click==8.4.1 tqdm==4.68.2 \
     playwright==1.60.0 \
-    apprise==1.10.0
+    apprise==1.11.0
 
 # ---------- Python packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     pip install --no-cache-dir --break-system-packages \
-      reportlab==4.5.1 weasyprint==68.1 cairosvg==2.9.0 fpdf2==2.8.7 PyMuPDF==1.27.2.3 pdfkit==1.0.0 img2pdf==0.6.3 \
+      reportlab==4.5.1 weasyprint==69.0 cairosvg==2.9.0 fpdf2==2.8.7 PyMuPDF==1.27.2.3 pdfkit==1.0.0 img2pdf==0.6.3 \
       xlsxwriter==3.2.9 xlrd==2.0.2 \
-      matplotlib==3.10.9 seaborn==0.13.2 \
+      matplotlib==3.11.0 seaborn==0.13.2 \
       python-pptx==1.0.2 \
-      fastapi==0.136.3 uvicorn==0.48.0 \
-      httpie==3.2.4; \
+      fastapi==0.137.0 uvicorn==0.49.0; \
     fi
 
 # ---------- AI CLI providers ----------
-RUN npm i -g @google/gemini-cli@0.43.0 @openai/codex@0.134.0 task-master-ai@0.43.1
+RUN npm i -g @google/gemini-cli@0.46.0 @openai/codex@0.139.0 task-master-ai@0.43.1
 USER claude
 RUN curl -fsSL https://cursor.com/install | bash
 USER root
@@ -164,72 +164,30 @@ USER root
 
 # ---------- OpenCode CLI (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g opencode-ai@1.15.10; \
+    npm i -g opencode-ai@1.17.7; \
     fi
 
-COPY vendor/artifacts/siteboon-claude-code-ui-1.26.3.tgz /tmp/vendor/siteboon-claude-code-ui-1.26.3.tgz
+COPY vendor/artifacts/cloudcli-ai-cloudcli-1.34.0.tgz /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz
 
 # ---------- CloudCLI (web UI for Claude Code) ----------
-RUN npm i -g /tmp/vendor/siteboon-claude-code-ui-1.26.3.tgz && rm -f /tmp/vendor/siteboon-claude-code-ui-1.26.3.tgz
+RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz
 COPY scripts/patch-cloudcli-apprise-notifications.mjs /tmp/patch-cloudcli-apprise-notifications.mjs
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
 COPY scripts/patch-cloudcli-disable-self-update.mjs /tmp/patch-cloudcli-disable-self-update.mjs
-RUN touch /usr/local/lib/node_modules/@siteboon/claude-code-ui/.env
+RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
 
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
 RUN node /tmp/patch-cloudcli-disable-self-update.mjs && rm -f /tmp/patch-cloudcli-disable-self-update.mjs
 
-# ---------- Patch: preserve WebSocket frame type in plugin proxy (Issue #11) ----------
-RUN CLOUDCLI_INDEX="/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/index.js" && \
-    grep -q "upstream.on('message', (data) =>" "$CLOUDCLI_INDEX" && \
-    sed -i "s/upstream.on('message', (data) => {/upstream.on('message', (data, isBinary) => {/" "$CLOUDCLI_INDEX" && \
-    sed -i "s/if (clientWs.readyState === WebSocket.OPEN) clientWs.send(data)/if (clientWs.readyState === WebSocket.OPEN) clientWs.send(data, { binary: isBinary })/" "$CLOUDCLI_INDEX" && \
-    sed -i "s/clientWs.on('message', (data) => {/clientWs.on('message', (data, isBinary) => {/" "$CLOUDCLI_INDEX" && \
-    sed -i "s/if (upstream.readyState === WebSocket.OPEN) upstream.send(data)/if (upstream.readyState === WebSocket.OPEN) upstream.send(data, { binary: isBinary })/" "$CLOUDCLI_INDEX" && \
-    echo "[patch] WebSocket frame type fix applied (both directions)" || \
-    (echo "[patch] ERROR: WebSocket pattern not found in vendored CloudCLI install"; exit 1)
+# CloudCLI 1.34.0 already contains the WebSocket binary-frame fix and the newer
+# provider model flow. Keep build-time checks so regressions fail closed.
+RUN CLOUDCLI_WS_PROXY="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/websocket/services/plugin-websocket-proxy.service.js" && \
+    grep -q "binary: isBinary" "$CLOUDCLI_WS_PROXY" && \
+    echo "[patch] WebSocket frame type fix already present upstream"
 
-# patch: preserve Shell tab scroll position across periodic refresh (issue #35)
-RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
-    grep -q 'const B=()=>{v.current?.focus()}' "$CLOUDCLI_BUNDLE" && \
-    perl -pi -e 's/const B=\(\)=>\{v\.current\?\.focus\(\)\}/const B=()=>{const _vp=v.current?.buffer?.active?.viewportY??0;v.current?.focus();v.current?.scrollToLine(_vp)}/g' "$CLOUDCLI_BUNDLE" && \
-    echo "[patch] Shell scroll position fix applied" || \
-    (echo "[patch] ERROR: Shell scroll pattern not found in vendored CloudCLI bundle"; exit 1)
-
-# patch v1.2.2-1: commands.js expose newModel in spawn args (issue #36)
-RUN CLOUDCLI_COMMANDS="/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/routes/commands.js" && \
-    grep -q 'message: args.length > 0' "$CLOUDCLI_COMMANDS" && \
-    perl -pi -e 's/^(\s+)(message: args\.length > 0)/$1newModel: args.length > 0 ? args[0] : null,\n$1$2/' "$CLOUDCLI_COMMANDS" && \
-    echo "[patch] commands.js newModel field added" || \
-    (echo "[patch] ERROR: commands.js newModel pattern not found"; exit 1)
-
-# patch v1.2.2-2: bundle expose setClaudeModel in claudeModel context spread (issue #36)
-RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
-    grep -q 'claudeModel:W,codexModel:V' "$CLOUDCLI_BUNDLE" && \
-    perl -pi -e 's/\QclaudeModel:W,codexModel:V\E/claudeModel:W,setClaudeModel:L,codexModel:V/g' "$CLOUDCLI_BUNDLE" && \
-    echo "[patch] bundle setClaudeModel context spread applied" || \
-    (echo "[patch] ERROR: bundle claudeModel:W pattern not found"; exit 1)
-
-# patch v1.2.2-3: bundle wire setClaudeModel:lS2 into cursorModel destructure (issue #36)
-RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
-    grep -q 'cursorModel:o,claudeModel:l,codexModel:c' "$CLOUDCLI_BUNDLE" && \
-    perl -pi -e 's/\QcursorModel:o,claudeModel:l,codexModel:c\E/cursorModel:o,claudeModel:l,setClaudeModel:lS2,codexModel:c/g' "$CLOUDCLI_BUNDLE" && \
-    echo "[patch] bundle setClaudeModel:lS2 destructure applied" || \
-    (echo "[patch] ERROR: bundle cursorModel destructure pattern not found"; exit 1)
-
-# patch v1.2.2-4: bundle apply newModel on SSE model event (issue #36)
-RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
-    grep -q 'case"model":k({type:"assistant"' "$CLOUDCLI_BUNDLE" && \
-    perl -pi -e 's/\Qcase"model":k({type:"assistant"\E/case"model":me.newModel\&\&lS2\&\&(lS2(me.newModel),localStorage.setItem("claude-model",me.newModel));k({type:"assistant"/g' "$CLOUDCLI_BUNDLE" && \
-    echo "[patch] bundle SSE model event handler applied" || \
-    (echo "[patch] ERROR: bundle case\"model\" pattern not found"; exit 1)
-
-# patch v1.2.2-5: bundle add custom model option to select (issue #36)
-RUN CLOUDCLI_BUNDLE="/usr/local/lib/node_modules/@siteboon/claude-code-ui/dist/assets/index-X3ImjnMV.js" && \
-    grep -q 'children:N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j))}' "$CLOUDCLI_BUNDLE" && \
-    perl -pi -e 's/\Qchildren:N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j))}\E/children:[...N.OPTIONS.map(({value:C,label:j})=>s.jsx("option",{value:C,children:j},C+j)),!N.OPTIONS.some(C=>C.value===k)\&\&k\&\&s.jsx("option",{value:k,children:k},k+"custom")].filter(Boolean)}/g' "$CLOUDCLI_BUNDLE" && \
-    echo "[patch] bundle custom model select option applied" || \
-    (echo "[patch] ERROR: bundle custom model select pattern not found"; exit 1)
+RUN CLOUDCLI_COMMANDS="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/routes/commands.js" && \
+    grep -q "providerModelsService.getProviderModels" "$CLOUDCLI_COMMANDS" && \
+    echo "[patch] Provider model command flow already present upstream"
 
 # patch: bridge Codex CloudCLI lifecycle events to Apprise (issue #17)
 RUN node /tmp/patch-cloudcli-apprise-notifications.mjs && rm -f /tmp/patch-cloudcli-apprise-notifications.mjs

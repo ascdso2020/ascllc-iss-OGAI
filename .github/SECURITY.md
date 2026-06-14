@@ -29,6 +29,19 @@ Codex support uses configurable near-parity modes, not identical security. `HOLY
 
 Do not expose CloudCLI directly to the public internet, especially with any bypass mode enabled. Docker limits access to the container and mounted volumes, but CloudCLI still exposes an interactive coding environment with credentials and mounted workspace files.
 
+## CloudCLI Runtime
+
+HolyClaude vendors `@cloudcli-ai/cloudcli` and applies Docker-build patches to the source and compiled runtime files. Do not replace CloudCLI from inside a running container with `cloudcli update` or `npm install -g @cloudcli-ai/cloudcli@latest`; update HolyClaude with `docker compose pull && docker compose up -d` instead.
+
+The vendored CloudCLI version must stay at or above the fixes for:
+
+| Advisory | What it covered | Fixed upstream |
+|----------|-----------------|----------------|
+| `CVE-2026-31862` / `GHSA-f2fc-vc88-6w7q` | Authenticated command injection in Git-related endpoints | `1.24.0` |
+| `CVE-2026-31975` / `GHSA-gv8f-wpm2-m5wr` | WebSocket auth/JWT weakness with shell injection risk | `1.25.0` |
+
+HolyClaude v1.2.8 vendors CloudCLI `1.34.0`.
+
 ## Credential Storage
 
 - API keys and authentication tokens are stored in `./data/claude/` on the host (bind-mounted to `~/.claude/` in the container)

@@ -4,13 +4,13 @@ HolyClaude includes third-party software distributed within the Docker image.
 Each component retains its original license. HolyClaude's own source code is
 licensed under MIT (see LICENSE).
 
-## CloudCLI (@siteboon/claude-code-ui)
+## CloudCLI (@cloudcli-ai/cloudcli)
 
-- License: GPL-3.0
-- Copyright: Simos Mikelatos / SiteBoon AI
+- License: AGPL-3.0-or-later
+- Copyright: CloudCLI UI Contributors
 - Source: https://github.com/siteboon/claudecodeui
-- npm: https://www.npmjs.com/package/@siteboon/claude-code-ui
-- Version: 1.26.3, installed from HolyClaude's vendored source-release tarball
+- npm: https://www.npmjs.com/package/@cloudcli-ai/cloudcli
+- Version: 1.34.0, installed from HolyClaude's vendored source-release tarball
 
 CloudCLI is installed as a standalone program via npm and runs as an
 independent process managed by s6-overlay.
@@ -21,18 +21,17 @@ HolyClaude applies the following CloudCLI patches during the Docker build.
 The exact commands are in the Dockerfile, and missing patch anchors fail the
 build.
 
-- WebSocket plugin proxy patch: preserves binary frame types in both relay
-  directions by passing the `isBinary` flag through CloudCLI's
-  `server/index.js` message handlers.
-- Shell scroll patch: preserves the Shell tab scroll position across periodic
-  refreshes in the bundled CloudCLI browser asset.
-- Issue #36 model patches: add `newModel` propagation from
-  `server/routes/commands.js` into the bundled browser code, update the
-  selected Claude model on model events, and keep a custom model option visible
-  in the selector.
+- Self-update guard: blocks CloudCLI's npm update path in both CLI and web API
+  surfaces so HolyClaude's patched runtime is not replaced inside a running
+  container.
 - Codex permission-mode compatibility backport: adds HolyClaude's
   `HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE` runtime mapping for CloudCLI Codex
   chat, including `default`, `acceptEdits`, and `bypassPermissions` modes.
+- Apprise notification bridge: sends CloudCLI Codex run completion and failure
+  lifecycle events through HolyClaude's existing `/usr/local/bin/notify.py`
+  hook.
+- Build-time upstream checks: verify CloudCLI's WebSocket binary-frame handling
+  and provider model command flow are present in the compiled runtime.
 
 The unmodified upstream source is available from the links above, and the
 HolyClaude modifications are visible in the public Dockerfile.
@@ -59,7 +58,7 @@ for their source and license files.
 
 - License: MIT
 - Source: https://github.com/nodejs/node
-- Version: 26.2.0 base image
+- Version: 26.3.0 base image
 
 For a complete list of installed packages and their licenses, inspect the
 Docker image directly or refer to the Dockerfile.

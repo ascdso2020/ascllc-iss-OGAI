@@ -92,8 +92,6 @@ pip install --break-system-packages python-pptx    # PowerPoint
 # Web framework
 pip install --break-system-packages fastapi uvicorn
 
-# HTTP client
-pip install --break-system-packages httpie
 ```
 The `--break-system-packages` flag is required (no venv in container context).
 

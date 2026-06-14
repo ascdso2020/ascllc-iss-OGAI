@@ -236,6 +236,8 @@ docker pull coderluii/holyclaude:slim
 ```
 
 > **`latest` è sempre l'immagine completa.** Utenti slim: non preoccupatevi — quando chiedete a Claude di fare qualcosa che richiede uno strumento mancante, lo installa in pochi secondi. Ottieni le stesse funzionalità, solo con un download iniziale più piccolo.
+>
+> Docker Hub mostra la dimensione compressa del download: `latest` è circa 4,0 GiB e `slim` circa 2,1 GiB. Docker, Synology Container Manager e i filesystem NAS possono mostrare una dimensione maggiore dopo l'estrazione dei layer.
 
 <p align="right">
   <a href="#top">↑ torna in cima</a>
@@ -588,7 +590,6 @@ L'immagine full include tutto quanto sopra, più:
 | `matplotlib`, `seaborn` | Visualizzazione dati e grafici |
 | `python-pptx` | Generazione PowerPoint |
 | `fastapi`, `uvicorn` | Framework web Python |
-| `httpie` | Client HTTP user-friendly (come curl ma leggibile) |
 
 </details>
 
@@ -913,6 +914,8 @@ docker compose up -d
 
 I tuoi dati persistono in `./data/claude` e `./workspace` — l'aggiornamento sostituisce solo il container, non i tuoi file.
 
+Non eseguire `cloudcli update` o `npm install -g @cloudcli-ai/cloudcli@latest` dentro il container. HolyClaude include un runtime CloudCLI patchato; aggiorna con `docker compose pull && docker compose up -d`.
+
 Per fissare una versione specifica invece di `latest`:
 
 ```yaml
@@ -1153,7 +1156,7 @@ L'immagine Docker di HolyClaude include software di terze parti, ognuno con la p
 
 | Componente | Licenza | Sorgente |
 |-----------|---------|--------|
-| CloudCLI | GPL-3.0 | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 

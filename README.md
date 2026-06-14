@@ -220,12 +220,12 @@ HolyClaude runs the **official Claude Code CLI** from Anthropic. Your existing a
 
 Two flavors. Same quality. Pick your weight class.
 
-| Tag | What you get | Best for |
-|-----|-------------|----------|
-| **`latest`** | Everything pre-installed — every tool, every library, every CLI | Most users. Zero wait time. Claude never has to stop and install something. |
-| **`slim`** | Core tools only — Claude installs extras on-demand | Smaller VPS, limited disk, metered bandwidth |
-| `X.Y.Z` | Full image, pinned version | Production stability — you control when to update |
-| `X.Y.Z-slim` | Slim image, pinned version | Production + small footprint |
+| Tag | What you get | Best for | Docker Hub compressed size |
+|-----|-------------|----------|----------------------------|
+| **`latest`** | Everything pre-installed — every tool, every library, every CLI | Most users. Zero wait time. Claude never has to stop and install something. | ~4.0 GiB |
+| **`slim`** | Core tools only — Claude installs extras on-demand | Smaller VPS, limited disk, metered bandwidth | ~2.1 GiB |
+| `X.Y.Z` | Full image, pinned version | Production stability — you control when to update | Same as `latest` for that release |
+| `X.Y.Z-slim` | Slim image, pinned version | Production + small footprint | Same as `slim` for that release |
 
 ```bash
 # Full — batteries included (recommended)
@@ -236,6 +236,8 @@ docker pull coderluii/holyclaude:slim
 ```
 
 > **`latest` is always the full image.** Slim users: don't worry — when you ask Claude to do something that needs a missing tool, it installs it in seconds. You get the same capabilities, just with a smaller initial download.
+>
+> Docker Hub reports compressed transfer size. Docker, Synology Container Manager, and NAS filesystems can show a larger unpacked size after layers are extracted. That is expected; use `slim` when disk space or bandwidth matters more than having every tool ready on first boot.
 
 <p align="right">
   <a href="#top">↑ back to top</a>
@@ -607,7 +609,6 @@ The full image includes everything above, plus:
 | `matplotlib`, `seaborn` | Data visualization and charts |
 | `python-pptx` | PowerPoint generation |
 | `fastapi`, `uvicorn` | Python web framework |
-| `httpie` | Human-friendly HTTP client (like curl but readable) |
 
 </details>
 
@@ -945,6 +946,12 @@ docker compose up -d
 
 Your data persists in `./data/claude` and `./workspace` — upgrading only replaces the container, not your files.
 
+Do not update CloudCLI inside the container with `cloudcli update` or `npm install -g @cloudcli-ai/cloudcli@latest`. HolyClaude ships a patched CloudCLI runtime, so the supported update path is the Docker image:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
 To pin a specific version instead of `latest`:
 
 ```yaml
@@ -1067,7 +1074,7 @@ docker build --build-arg VARIANT=slim -t holyclaude:slim .
 docker buildx build --platform linux/arm64 -t holyclaude .
 ```
 
-This source release vendors the patched CloudCLI package under `vendor/artifacts/`, so `docker build` installs that bundled tarball instead of downloading `@siteboon/claude-code-ui` from npm.
+This source release vendors the patched CloudCLI package under `vendor/artifacts/`, so `docker build` installs that bundled `@cloudcli-ai/cloudcli` tarball instead of downloading a moved package from npm.
 
 Then use `image: holyclaude` instead of `image: coderluii/holyclaude:latest` in your compose file.
 
@@ -1187,7 +1194,7 @@ The HolyClaude Docker image includes third-party software, each under its own li
 
 | Component | License | Source |
 |-----------|---------|--------|
-| CloudCLI | GPL-3.0 | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 

@@ -1,13 +1,13 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 
-const ORCHESTRATOR_PATH = '/usr/local/lib/node_modules/@siteboon/claude-code-ui/server/services/notification-orchestrator.js';
+const DEFAULT_CLOUDCLI_ROOT = '/usr/local/lib/node_modules/@cloudcli-ai/cloudcli';
+const cliTarget = process.argv[2];
 const ERROR_MESSAGE = '[patch] ERROR: CloudCLI notification orchestrator anchors not found';
-const IMPORT_ANCHOR = "import { notificationPreferencesDb, pushSubscriptionsDb, sessionNamesDb } from '../database/db.js';";
+const IMPORT_ANCHOR = "import { notificationPreferencesDb, pushSubscriptionsDb, sessionsDb } from '../modules/database/index.js';";
 const SPAWN_IMPORT = "import { spawn } from 'child_process';";
 const STOP_ANCHOR = "function notifyRunStopped({ userId, provider, sessionId = null, stopReason = 'completed', sessionName = null })";
 const FAILED_ANCHOR = "function notifyRunFailed({ userId, provider, sessionId = null, error, sessionName = null })";
 const HELPER_MARKER = "const APPRISE_PROVIDER_ALLOWLIST = new Set(['codex']);";
-const LEGACY_HELPER_NAME = 'notifyAppriseLifecycle';
 const HELPER_NAME = 'sendAppriseLifecycleNotification';
 const SANITIZE_MARKER = "replace(/\\x00/g, '').replace(/\\s+/g, ' ')";
 
@@ -85,67 +85,92 @@ const failedCall = `  const errorMessage = normalizeErrorMessage(error);
     error: errorMessage
   });`;
 
-let source = readFileSync(ORCHESTRATOR_PATH, 'utf8');
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-const requiredAnchorsPresent = source.includes(STOP_ANCHOR) && source.includes(FAILED_ANCHOR) && source.includes(IMPORT_ANCHOR);
-if (!requiredAnchorsPresent) {
+function resolveTargets() {
+  if (cliTarget && existsSync(cliTarget) && statSync(cliTarget).isFile()) {
+    return [{ label: 'target', path: cliTarget }];
+  }
+
+  const root = cliTarget || DEFAULT_CLOUDCLI_ROOT;
+  return [
+    { label: 'source', path: `${root}/server/services/notification-orchestrator.js` },
+    { label: 'runtime', path: `${root}/dist-server/server/services/notification-orchestrator.js` }
+  ].filter((target) => existsSync(target.path));
+}
+
+function patchTarget(target) {
+  let source = readFileSync(target.path, 'utf8');
+
+  const requiredAnchorsPresent = source.includes(STOP_ANCHOR)
+    && source.includes(FAILED_ANCHOR)
+    && source.includes(IMPORT_ANCHOR);
+  if (!requiredAnchorsPresent) {
+    console.error(ERROR_MESSAGE);
+    process.exit(1);
+  }
+
+  const alreadyApplied = source.includes(SPAWN_IMPORT)
+    && source.includes(HELPER_MARKER)
+    && source.includes(`function ${HELPER_NAME}(`)
+    && source.includes(SANITIZE_MARKER)
+    && source.includes("child.on('error', () => {})")
+    && source.includes('typeof child.unref')
+    && source.includes("kind: 'stop'")
+    && source.includes("kind: 'error'");
+
+  if (alreadyApplied) {
+    console.log(`[patch] CloudCLI Apprise lifecycle notifications already applied (${target.label})`);
+    return;
+  }
+
+  if (!source.includes(SPAWN_IMPORT)) {
+    source = source.replace(IMPORT_ANCHOR, `${SPAWN_IMPORT}\n${IMPORT_ANCHOR}`);
+  }
+
+  if (!source.includes(HELPER_MARKER)) {
+    source = source.replace(`${STOP_ANCHOR} {`, `${helperCode}\n${STOP_ANCHOR} {`);
+  }
+
+  if (!source.includes("kind: 'stop'")) {
+    source = source.replace(`${STOP_ANCHOR} {\n`, `${STOP_ANCHOR} {\n${stopCall}`);
+  }
+
+  if (!source.includes("kind: 'error'")) {
+    const failedPattern = new RegExp(`${escapeRegex(FAILED_ANCHOR)} \\{\\n\\s*const errorMessage = normalizeErrorMessage\\(error\\);`);
+    if (!failedPattern.test(source)) {
+      console.error(ERROR_MESSAGE);
+      process.exit(1);
+    }
+    source = source.replace(failedPattern, `${FAILED_ANCHOR} {\n${failedCall}`);
+  }
+
+  const finalApplied = source.includes(SPAWN_IMPORT)
+    && source.includes(HELPER_MARKER)
+    && source.includes(`function ${HELPER_NAME}(`)
+    && source.includes(SANITIZE_MARKER)
+    && source.includes("child.on('error', () => {})")
+    && source.includes('typeof child.unref')
+    && source.includes("kind: 'stop'")
+    && source.includes("kind: 'error'");
+
+  if (!finalApplied) {
+    console.error(ERROR_MESSAGE);
+    process.exit(1);
+  }
+
+  writeFileSync(target.path, source);
+  console.log(`[patch] CloudCLI Apprise lifecycle notifications applied (${target.label})`);
+}
+
+const targets = resolveTargets();
+if (targets.length === 0) {
   console.error(ERROR_MESSAGE);
   process.exit(1);
 }
 
-const alreadyApplied = source.includes(SPAWN_IMPORT)
-  && source.includes(HELPER_MARKER)
-  && source.includes(`function ${HELPER_NAME}(`)
-  && source.includes(SANITIZE_MARKER)
-  && source.includes("child.on('error', () => {})")
-  && source.includes('typeof child.unref')
-  && source.includes("kind: 'stop'")
-  && source.includes("kind: 'error'");
-
-if (alreadyApplied) {
-  console.log('[patch] CloudCLI Apprise lifecycle notifications already applied');
-  process.exit(0);
+for (const target of targets) {
+  patchTarget(target);
 }
-
-if (!source.includes(SPAWN_IMPORT)) {
-  source = source.replace(IMPORT_ANCHOR, `${IMPORT_ANCHOR}\n${SPAWN_IMPORT}`);
-}
-
-if (source.includes(LEGACY_HELPER_NAME)) {
-  source = source.replaceAll(LEGACY_HELPER_NAME, HELPER_NAME);
-}
-
-if (source.includes('    child.unref();')) {
-  source = source.replaceAll(
-    '    child.unref();',
-    "    child.on('error', () => {});\n    if (typeof child.unref === 'function') child.unref();"
-  );
-}
-
-const legacyCatchBlock = '  } catch (error) {\n'
-  + "    console." + "error('[patch] CloudCLI Apprise lifecycle notification "
-  + "spawn failed:', error?.message || error);\n"
-  + '  }';
-if (source.includes(legacyCatchBlock)) {
-  source = source.replace(legacyCatchBlock, '  } catch {\n  }');
-}
-
-if (!source.includes(HELPER_MARKER)) {
-  source = source.replace(`${STOP_ANCHOR} {`, `${helperCode}\n${STOP_ANCHOR} {`);
-}
-
-if (!source.includes(stopCall)) {
-  source = source.replace(`${STOP_ANCHOR} {\n`, `${STOP_ANCHOR} {\n${stopCall}`);
-}
-
-const failedNeedle = `${FAILED_ANCHOR} {\n  const errorMessage = normalizeErrorMessage(error);`;
-if (!source.includes(failedCall)) {
-  if (!source.includes(failedNeedle)) {
-    console.error(ERROR_MESSAGE);
-    process.exit(1);
-  }
-  source = source.replace(failedNeedle, `${FAILED_ANCHOR} {\n${failedCall}`);
-}
-
-writeFileSync(ORCHESTRATOR_PATH, source);
-console.log('[patch] CloudCLI Apprise lifecycle notifications applied');

@@ -54,12 +54,14 @@ That's it. Open your browser, sign in, start building.
 
 ## Image Variants
 
-| Tag | Description | Size |
-|-----|-------------|------|
-| `latest` | Full image — everything pre-installed, zero wait | ~3 GB |
-| `slim` | Core tools only — smaller download, extras install on demand | ~1.5 GB |
-| `X.Y.Z` | Full image, pinned version | ~3 GB |
-| `X.Y.Z-slim` | Slim image, pinned version | ~1.5 GB |
+| Tag | Description | Docker Hub compressed size |
+|-----|-------------|----------------------------|
+| `latest` | Full image — everything pre-installed, zero wait | ~4.0 GiB |
+| `slim` | Core tools only — smaller download, extras install on demand | ~2.1 GiB |
+| `X.Y.Z` | Full image, pinned version | Same as `latest` for that release |
+| `X.Y.Z-slim` | Slim image, pinned version | Same as `slim` for that release |
+
+Docker Hub reports compressed transfer size. Docker, Synology Container Manager, and NAS filesystems can report a larger unpacked size after layers are extracted. Use `slim` when disk space or bandwidth matters more than first-boot convenience.
 
 ## Authentication
 

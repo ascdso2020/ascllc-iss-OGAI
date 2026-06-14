@@ -12,7 +12,7 @@ Solutions to common issues when running HolyClaude.
 
 **Cause:** A custom or modified CloudCLI service script did not set `WORKSPACES_ROOT=/workspace` before launching CloudCLI.
 
-**Fix:** Already handled in HolyClaude. The s6 run script uses `with-contenv`, exports `WORKSPACES_ROOT=/workspace`, then starts CloudCLI as the `claude` user. If you've modified the s6 service scripts, keep that export before the `claude-code-ui --port 3001` command.
+**Fix:** Already handled in HolyClaude. The s6 run script uses `with-contenv`, exports `WORKSPACES_ROOT=/workspace`, then starts CloudCLI as the `claude` user. If you've modified the s6 service scripts, keep that export before the `cloudcli --port 3001` command.
 
 ---
 
@@ -141,14 +141,14 @@ docker compose restart holyclaude
 
 ---
 
-### CloudCLI update fails with `@/shared`
+### CloudCLI self-update is blocked
 
-**Symptom:** CloudCLI fails after an in-container update and logs:
+**Symptom:** `cloudcli update`, the web UI update button, or a manual npm global install tries to replace the CloudCLI files inside the container.
+
+**Cause:** HolyClaude ships a patched `@cloudcli-ai/cloudcli` runtime. Replacing it from inside the running container can remove the HolyClaude patches and leave source/runtime paths mismatched. Older images could fail with:
 ```text
 Cannot find package '@/shared' imported from .../@cloudcli-ai/cloudcli/server/index.js
 ```
-
-**Cause:** The upstream npm self-update path can replace HolyClaude's patched CloudCLI files with the moved CloudCLI package. That package ships source-path imports under `server/` that do not run correctly in this image.
 
 **Fix:** Recreate the container from the HolyClaude image and use Docker for updates:
 ```bash
@@ -156,7 +156,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Do not run `cloudcli update` or `npm install -g @siteboon/claude-code-ui@latest` inside the container. HolyClaude disables that self-update path so the patched CloudCLI runtime stays intact.
+Do not run `cloudcli update` or `npm install -g @cloudcli-ai/cloudcli@latest` inside the container. HolyClaude disables that self-update path so the patched CloudCLI runtime stays intact.
 
 ---
 

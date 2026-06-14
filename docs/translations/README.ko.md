@@ -236,6 +236,8 @@ docker pull coderluii/holyclaude:slim
 ```
 
 > **`latest`는 항상 전체 이미지입니다.** Slim 사용자: 걱정 마세요 — Claude에게 없는 도구가 필요한 작업을 요청하면 몇 초 안에 설치됩니다. 동일한 기능을 제공하되, 초기 다운로드 크기만 작습니다.
+>
+> Docker Hub는 압축된 전송 크기를 표시합니다. `latest`는 약 4.0 GiB, `slim`은 약 2.1 GiB입니다. Docker, Synology Container Manager, NAS 파일시스템은 레이어가 풀린 뒤 더 큰 크기로 표시할 수 있습니다.
 
 <p align="right">
   <a href="#top">↑ 맨 위로</a>
@@ -588,7 +590,6 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `matplotlib`, `seaborn` | 데이터 시각화 및 차트 |
 | `python-pptx` | PowerPoint 생성 |
 | `fastapi`, `uvicorn` | Python 웹 프레임워크 |
-| `httpie` | 사람 친화적인 HTTP 클라이언트 (curl처럼 하지만 읽기 쉬움) |
 
 </details>
 
@@ -913,6 +914,8 @@ docker compose up -d
 
 데이터는 `./data/claude`와 `./workspace`에 유지됩니다 — 업그레이드는 컨테이너만 교체하며 파일은 건드리지 않습니다.
 
+컨테이너 안에서 `cloudcli update` 또는 `npm install -g @cloudcli-ai/cloudcli@latest`를 실행하지 마세요. HolyClaude는 패치된 CloudCLI 런타임을 포함하므로 `docker compose pull && docker compose up -d`로 업데이트하세요.
+
 `latest` 대신 특정 버전을 고정하려면:
 
 ```yaml
@@ -1153,7 +1156,7 @@ HolyClaude Docker 이미지에는 각각 자체 라이선스를 가진 서드파
 
 | 구성 요소 | 라이선스 | 소스 |
 |-----------|---------|--------|
-| CloudCLI | GPL-3.0 | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 
