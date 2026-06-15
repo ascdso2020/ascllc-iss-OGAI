@@ -73,6 +73,7 @@
 | :wrench: | [환경 변수](#wrench-environment-variables) |
 | :rocket: | [포함된 것들](#rocket-whats-inside) |
 | :robot: | [AI CLI 제공자](#robot-ai-cli-providers) |
+| :mag: | [Desloppify](#mag-desloppify) |
 | :llama: | [Ollama 사용하기](#llama-using-ollama) |
 | :building_construction: | [아키텍처](#building_construction-architecture) |
 | :file_folder: | [프로젝트 구조](#file_folder-project-structure) |
@@ -476,6 +477,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `GEMINI_API_KEY` | *(미설정)* | Google Gemini API 키 |
 | `OPENAI_API_KEY` | *(미설정)* | OpenAI API 키 (Codex CLI용, 또는 ChatGPT 구독은 `codex login --device-auth` 사용) |
 | `CURSOR_API_KEY` | *(미설정)* | Cursor API 키 |
+| `HOLYCLAUDE_DESLOPPIFY_SETUP` | `off` | 선택적 Desloppify 전역 skill 설정. 값: `off`, `all`, `claude`, `codex`, `gemini`, `opencode` 또는 쉼표로 구분한 조합 |
 | `OLLAMA_HOST` | *(미설정)* | Ollama 엔드포인트 URL (예: `http://host.docker.internal:11434`) |
 
 <p align="right">
@@ -519,6 +521,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `jinja2`, `markdown` | 템플릿 및 마크다운 렌더링 |
 | `pyyaml`, `python-dotenv` | 설정 파일 파싱 |
 | `rich`, `click`, `tqdm` | 아름다운 CLI 및 진행 표시줄 |
+| `desloppify`, `bandit`, `tree-sitter` | 코드 품질 스캔, Python 보안 체크, parser 기반 코드 분석 |
 | `playwright` | 브라우저 자동화 (Chromium이 이미 설정되어 사용 준비 완료) |
 
 </details>
@@ -630,6 +633,27 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **Pi Coding Agent** | `pi` | Pi로 설정 | 여러 제공자 지원 |
 
 > Claude Code가 기본 CLI입니다. 나머지는 두 번째 의견이 필요할 때, 특정 모델의 강점을 활용할 때, 또는 출력을 비교할 때 사용합니다. `Tab` 하나면 모두 사용 가능하다는 것이 핵심입니다.
+
+<p align="right">
+  <a href="#top">↑ 맨 위로</a>
+</p>
+
+---
+
+## :mag: Desloppify
+
+Desloppify는 두 이미지 모두에 `desloppify` 명령으로 포함됩니다. 기본값은 passive입니다. HolyClaude는 사용자가 직접 Desloppify를 실행하지 않는 한 scan을 실행하지 않고, `.desloppify/`를 만들지 않으며, `.gitignore`를 편집하거나 mounted workspace를 변경하지 않습니다.
+
+```bash
+desloppify scan --path .
+desloppify next
+```
+
+프로젝트를 scan한 뒤에는 그 프로젝트의 `.gitignore`에 `.desloppify/`를 추가하세요.
+
+`HOLYCLAUDE_DESLOPPIFY_SETUP=off`는 자동 전역 skill 설정만 끕니다. CLI는 계속 설치되어 있습니다. `all`은 `claude,codex,gemini`를 뜻합니다. `opencode`는 full image 전용이며 `all`에 포함되지 않습니다. OpenCode는 `~/.claude/skills`에서 Claude-compatible skills도 찾을 수 있으므로 automatic setup에서 `claude`와 `opencode`를 함께 쓰지 마세요.
+
+수동 upstream targets: `cursor`, `copilot`, `windsurf`, `qwen`, `amp`, `rovodev`, `droid`, `hermes`.
 
 <p align="right">
   <a href="#top">↑ 맨 위로</a>
@@ -1160,6 +1184,7 @@ HolyClaude Docker 이미지에는 각각 자체 라이선스를 가진 서드파
 | 구성 요소 | 라이선스 | 소스 |
 |-----------|---------|--------|
 | CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 

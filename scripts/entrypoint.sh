@@ -117,6 +117,72 @@ if [ ! -f "$SENTINEL" ]; then
     fi
 fi
 
+# ---------- Optional Desloppify global skill setup ----------
+desloppify_add_target() {
+    case " $DESLOPPIFY_TARGETS " in
+        *" $1 "*) ;;
+        *) DESLOPPIFY_TARGETS="${DESLOPPIFY_TARGETS} $1" ;;
+    esac
+}
+
+DESLOPPIFY_SETUP="${HOLYCLAUDE_DESLOPPIFY_SETUP:-off}"
+DESLOPPIFY_SETUP="$(printf '%s' "$DESLOPPIFY_SETUP" | tr '[:upper:]' '[:lower:]')"
+
+if [ -n "$DESLOPPIFY_SETUP" ] && [ "$DESLOPPIFY_SETUP" != "off" ]; then
+    DESLOPPIFY_TARGETS=""
+    DESLOPPIFY_HAS_CLAUDE=0
+    DESLOPPIFY_HAS_OPENCODE=0
+
+    IFS=',' read -ra DESLOPPIFY_REQUESTED_TARGETS <<< "$DESLOPPIFY_SETUP"
+    for raw_target in "${DESLOPPIFY_REQUESTED_TARGETS[@]}"; do
+        target="$(printf '%s' "$raw_target" | tr -d '[:space:]')"
+        case "$target" in
+            "")
+                ;;
+            all)
+                desloppify_add_target claude
+                desloppify_add_target codex
+                desloppify_add_target gemini
+                DESLOPPIFY_HAS_CLAUDE=1
+                ;;
+            claude|codex|gemini)
+                desloppify_add_target "$target"
+                [ "$target" = "claude" ] && DESLOPPIFY_HAS_CLAUDE=1
+                ;;
+            opencode)
+                DESLOPPIFY_HAS_OPENCODE=1
+                ;;
+            *)
+                echo "[entrypoint] WARNING: invalid HOLYCLAUDE_DESLOPPIFY_SETUP target '$target' — skipping"
+                ;;
+        esac
+    done
+
+    if [ "$DESLOPPIFY_HAS_OPENCODE" = "1" ]; then
+        VARIANT="full"
+        [ -f /etc/holyclaude-variant ] && VARIANT="$(cat /etc/holyclaude-variant)"
+        if [ "$VARIANT" != "full" ]; then
+            echo "[entrypoint] WARNING: Desloppify OpenCode setup is full-image only — skipping opencode"
+        elif [ "$DESLOPPIFY_HAS_CLAUDE" = "1" ]; then
+            echo "[entrypoint] WARNING: Desloppify opencode setup conflicts with claude setup — skipping opencode"
+        elif [ -n "${OPENCODE_CONFIG_DIR:-}" ]; then
+            echo "[entrypoint] WARNING: OPENCODE_CONFIG_DIR is set; Desloppify opencode setup uses ~/.config/opencode — skipping opencode"
+        elif ! command -v opencode >/dev/null 2>&1; then
+            echo "[entrypoint] WARNING: opencode command is unavailable — skipping Desloppify opencode setup"
+        else
+            mkdir -p "$CLAUDE_HOME/.config/opencode"
+            chown -R "$PUID:$PGID" "$CLAUDE_HOME/.config"
+            desloppify_add_target opencode
+        fi
+    fi
+
+    for target in $DESLOPPIFY_TARGETS; do
+        if ! runuser -u "$CLAUDE_USER" -- env HOME="$CLAUDE_HOME" desloppify setup --interface "$target"; then
+            echo "[entrypoint] WARNING: Desloppify setup failed for '$target' — continuing"
+        fi
+    done
+fi
+
 # ---------- Background: persist ~/.claude.json every 60s ----------
 (while true; do
     sleep 60

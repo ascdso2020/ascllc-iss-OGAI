@@ -176,6 +176,30 @@ HolyClaude v1.3.0 patches CloudCLI so successful Codex completion events include
 
 ---
 
+### Desloppify setup warns and skips a target
+
+**Symptom:** Container startup logs show a Desloppify warning for `opencode`, an invalid target, or `OPENCODE_CONFIG_DIR`.
+
+**Cause:** `HOLYCLAUDE_DESLOPPIFY_SETUP` only configures global skill files. HolyClaude skips unsafe or unavailable targets instead of blocking startup.
+
+**Fix:** Use one of the supported values:
+```yaml
+environment:
+  - HOLYCLAUDE_DESLOPPIFY_SETUP=all
+```
+
+`all` means `claude,codex,gemini`. OpenCode is full-image only and must be requested as `opencode`. Do not combine `claude` and `opencode`; OpenCode can already discover Claude-compatible skills from `~/.claude/skills`, so HolyClaude skips `opencode` to avoid duplicate skill discovery.
+
+Desloppify itself remains installed. Run scans manually from a project:
+```bash
+desloppify scan --path .
+desloppify next
+```
+
+After scanning, add `.desloppify/` to that project's `.gitignore`.
+
+---
+
 ## SMB/CIFS Gotchas
 
 If your volumes are on a Samba/CIFS network share (common with Hyper-V VMs, NAS devices):

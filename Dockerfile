@@ -136,6 +136,8 @@ RUN pip install --no-cache-dir --break-system-packages \
     openpyxl==3.1.5 python-docx==1.2.0 \
     jinja2==3.1.6 pyyaml==6.0.3 python-dotenv==1.2.2 markdown==3.10.2 \
     rich==15.0.0 click==8.4.1 tqdm==4.68.2 \
+    'desloppify[full]==1.0' bandit==1.9.4 defusedxml==0.7.1 \
+    tree-sitter==0.25.2 tree-sitter-language-pack==1.6.2 stevedore==5.8.0 \
     playwright==1.60.0 \
     apprise==1.11.0
 

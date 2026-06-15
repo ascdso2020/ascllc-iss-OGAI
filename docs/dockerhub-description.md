@@ -2,7 +2,7 @@
 
 **One command. Full AI development workstation.**
 
-Claude Code, CloudCLI web UI, headless browser, 8 AI CLIs, 50+ dev tools — containerized and ready. You were going to spend 2 hours setting this up manually. Or you could just `docker compose up`.
+Claude Code, CloudCLI web UI, headless browser, 8 AI CLIs, Desloppify, 50+ dev tools — containerized and ready. You were going to spend 2 hours setting this up manually. Or you could just `docker compose up`.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/coderluii/holyclaude?style=flat-square&logo=docker)](https://hub.docker.com/r/coderluii/holyclaude)
 [![GitHub Stars](https://img.shields.io/github/stars/coderluii/holyclaude?style=flat-square&logo=github)](https://github.com/CoderLuii/HolyClaude)
@@ -47,6 +47,8 @@ That's it. Open your browser, sign in, start building.
 🖥️ **Headless Browser** — Chromium + Xvfb + Playwright, pre-configured for screenshots, testing, and automation
 
 🛠️ **50+ Dev Tools** — Node.js 26, Python 3, TypeScript, git, GitHub CLI, database clients (PostgreSQL, SQLite, Redis), deployment CLIs (Vercel, Wrangler, Netlify, Azure), and more
+
+🔎 **Desloppify included** — The `desloppify` CLI ships in both images. It is passive by default and only scans when you run it.
 
 ⚙️ **s6-overlay 3.2.3.0** — Proper PID 1 process supervision with graceful shutdown and automatic service restarts
 

@@ -55,7 +55,9 @@ Runs every time the container starts. Responsibilities:
 
 4. **Bootstrap trigger** — Checks for sentinel file `.holyclaude-bootstrapped`. If absent, runs `bootstrap.sh`.
 
-5. **Handoff** — `exec /init` replaces the entrypoint process with s6-overlay, which becomes PID 1.
+5. **Optional Desloppify setup** — Reads `HOLYCLAUDE_DESLOPPIFY_SETUP` after bootstrap and before s6 starts. Setup runs as the `claude` user and only writes global agent skill files for the requested interface. It does not scan `/workspace` or create project-level `.desloppify/` state.
+
+6. **Handoff** — `exec /init` replaces the entrypoint process with s6-overlay, which becomes PID 1.
 
 ### Bootstrap (`bootstrap.sh`)
 

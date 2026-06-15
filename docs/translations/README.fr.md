@@ -73,6 +73,7 @@ Votre compte Anthropic existant fonctionne directement :
 | :wrench: | [Variables d'environnement](#wrench-environment-variables) |
 | :rocket: | [Ce qui est inclus](#rocket-whats-inside) |
 | :robot: | [Fournisseurs de CLI IA](#robot-ai-cli-providers) |
+| :mag: | [Desloppify](#mag-desloppify) |
 | :llama: | [Utiliser Ollama](#llama-using-ollama) |
 | :building_construction: | [Architecture](#building_construction-architecture) |
 | :file_folder: | [Structure du projet](#file_folder-project-structure) |
@@ -476,6 +477,7 @@ La référence complète. Chaque variable, sa valeur par défaut, ce qu'elle fai
 | `GEMINI_API_KEY` | *(non défini)* | Clé API Google Gemini |
 | `OPENAI_API_KEY` | *(non défini)* | Clé API OpenAI (pour Codex CLI, ou utilisez `codex login --device-auth` pour l'abonnement ChatGPT) |
 | `CURSOR_API_KEY` | *(non défini)* | Clé API Cursor |
+| `HOLYCLAUDE_DESLOPPIFY_SETUP` | `off` | Configuration globale optionnelle des skills Desloppify. Valeurs: `off`, `all`, `claude`, `codex`, `gemini`, `opencode` ou sous-ensembles separes par des virgules |
 | `OLLAMA_HOST` | *(non défini)* | URL de l'endpoint Ollama (ex. `http://host.docker.internal:11434`) |
 
 <p align="right">
@@ -519,6 +521,7 @@ Ce n'est pas un conteneur minimal. C'est un poste de travail de développement c
 | `jinja2`, `markdown` | Templating et rendu markdown |
 | `pyyaml`, `python-dotenv` | Parsing de fichiers de configuration |
 | `rich`, `click`, `tqdm` | Beaux CLIs et barres de progression |
+| `desloppify`, `bandit`, `tree-sitter` | Scans de qualite du code, controles de securite Python, analyse de code avec parser |
 | `playwright` | Automatisation de navigateur (Chromium déjà configuré et prêt) |
 
 </details>
@@ -630,6 +633,27 @@ Huit CLI IA. Un seul conteneur. Aucune autre image Docker ne vous donne ça.
 | **Pi Coding Agent** | `pi` | Configurer via Pi | Supporte plusieurs fournisseurs |
 
 > Claude Code est le CLI principal. Les autres sont là parce que vous voulez parfois un deuxième avis, ou les points forts d'un modèle spécifique, ou que vous comparez des sorties. Les avoir tous à un `Tab` de distance, c'est tout l'intérêt.
+
+<p align="right">
+  <a href="#top">↑ retour en haut</a>
+</p>
+
+---
+
+## :mag: Desloppify
+
+Desloppify est fourni dans les deux images via la commande `desloppify`. Par defaut, il reste passif: HolyClaude ne lance pas de scan, ne cree pas `.desloppify/`, ne modifie pas `.gitignore` et ne touche pas aux workspaces montes sauf si vous lancez Desloppify vous-meme.
+
+```bash
+desloppify scan --path .
+desloppify next
+```
+
+Apres un scan, ajoutez `.desloppify/` au `.gitignore` du projet concerne.
+
+`HOLYCLAUDE_DESLOPPIFY_SETUP=off` desactive seulement la configuration globale automatique des skills; la CLI reste installee. `all` signifie `claude,codex,gemini`. `opencode` est reserve a l'image full et n'est pas inclus dans `all`. Ne combinez pas `claude` et `opencode` en configuration automatique, car OpenCode peut deja decouvrir les skills compatibles Claude depuis `~/.claude/skills`.
+
+Cibles upstream manuelles: `cursor`, `copilot`, `windsurf`, `qwen`, `amp`, `rovodev`, `droid`, `hermes`.
 
 <p align="right">
   <a href="#top">↑ retour en haut</a>
@@ -1160,6 +1184,7 @@ L'image Docker HolyClaude inclut des logiciels tiers, chacun sous sa propre lice
 | Composant | Licence | Source |
 |-----------|---------|--------|
 | CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 

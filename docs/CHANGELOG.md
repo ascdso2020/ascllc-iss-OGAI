@@ -4,6 +4,15 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 06/15/2026
+
+### Added
+- Added Desloppify `1.0` to both image variants as the `desloppify` CLI, with pinned supporting packages for Bandit, tree-sitter, and Stevedore.
+- Added optional `HOLYCLAUDE_DESLOPPIFY_SETUP` global skill setup for Claude, Codex, Gemini, and full-image OpenCode.
+
+### Changed
+- Documented Desloppify's passive default behavior, manual scan commands, project-level `.desloppify/` state, OpenCode setup caveats, and OSNL-0.2 notice.
+
 ## [1.3.0] - 06/15/2026
 
 ### Fixed

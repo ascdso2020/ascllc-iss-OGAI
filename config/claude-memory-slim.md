@@ -68,6 +68,7 @@ Install these with `npm i -g <package>` — takes seconds.
 - **Documents:** python-docx, markdown, jinja2
 - **Config:** pyyaml, python-dotenv
 - **CLI:** rich, click, tqdm
+- **Code quality:** Desloppify, Bandit, tree-sitter
 - **Browser:** playwright
 
 ### NOT pre-installed (install when needed):
@@ -94,6 +95,14 @@ pip install --break-system-packages fastapi uvicorn
 
 ```
 The `--break-system-packages` flag is required (no venv in container context).
+
+## Desloppify
+
+- `desloppify` is installed in the slim image.
+- It is passive by default. HolyClaude does not run scans, create `.desloppify/`, edit `.gitignore`, or modify mounted workspaces unless the user runs Desloppify.
+- Optional global skill setup is controlled by `HOLYCLAUDE_DESLOPPIFY_SETUP`. Valid values: `off`, `all`, `claude`, `codex`, `gemini`, or comma-separated subsets. `opencode` is full-image only and is skipped in slim.
+- `all` expands to `claude,codex,gemini`.
+- Normal project usage: `desloppify scan --path .` then `desloppify next`. After scans, add `.desloppify/` to that project's `.gitignore`.
 
 ### System packages NOT pre-installed:
 The slim variant does not include these apt packages. Install if needed:

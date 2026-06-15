@@ -58,6 +58,7 @@ npm i <package>           # Project-local install
 - **Documents:** python-docx, python-pptx, markdown, jinja2
 - **Config:** pyyaml, python-dotenv
 - **CLI:** rich, click, tqdm
+- **Code quality:** Desloppify, Bandit, tree-sitter
 - **Browser:** playwright
 - **Web framework:** fastapi, uvicorn
 
@@ -79,6 +80,15 @@ The `--break-system-packages` flag is required (no venv in container context).
 | **Junie** | `junie` | JetBrains AI coding agent (requires JetBrains account) |
 | **OpenCode** | `opencode` | Open source AI agent (supports multiple providers) |
 | **Pi Coding Agent** | `pi` | Minimal agent harness (supports multiple providers) |
+
+## Desloppify
+
+- `desloppify` is installed in the full image.
+- It is passive by default. HolyClaude does not run scans, create `.desloppify/`, edit `.gitignore`, or modify mounted workspaces unless the user runs Desloppify.
+- Optional global skill setup is controlled by `HOLYCLAUDE_DESLOPPIFY_SETUP`. Valid values: `off`, `all`, `claude`, `codex`, `gemini`, `opencode`, or comma-separated subsets.
+- `all` expands to `claude,codex,gemini`. OpenCode is not included in `all`.
+- OpenCode can discover Claude-compatible skills from `~/.claude/skills`. Do not combine `claude` and `opencode` automatic setup.
+- Normal project usage: `desloppify scan --path .` then `desloppify next`. After scans, add `.desloppify/` to that project's `.gitignore`.
 
 ## System Tools
 

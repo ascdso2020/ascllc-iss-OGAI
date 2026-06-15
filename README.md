@@ -73,6 +73,7 @@ Your existing Anthropic account works directly:
 | :wrench: | [Environment Variables](#wrench-environment-variables) |
 | :rocket: | [What's Inside](#rocket-whats-inside) |
 | :robot: | [AI CLI Providers](#robot-ai-cli-providers) |
+| :mag: | [Desloppify](#mag-desloppify) |
 | :llama: | [Using Ollama](#llama-using-ollama) |
 | :building_construction: | [Architecture](#building_construction-architecture) |
 | :file_folder: | [Project Structure](#file_folder-project-structure) |
@@ -488,6 +489,7 @@ The complete reference. Every variable, what it defaults to, what it does.
 | `CURSOR_API_KEY` | *(unset)* | Cursor API key |
 | `HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE` | `acceptEdits` | CloudCLI Codex chat runtime mode. Valid: `default`, `acceptEdits`, `bypassPermissions` |
 | `HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE` | `default` | Raw `codex` CLI first-boot mode for new `~/.codex/config.toml` only. Valid: `default`, `acceptEdits`, `bypassPermissions` |
+| `HOLYCLAUDE_DESLOPPIFY_SETUP` | `off` | Optional Desloppify global skill setup. Valid: `off`, `all`, `claude`, `codex`, `gemini`, `opencode`, or comma-separated subsets |
 
 <p align="right">
   <a href="#top">↑ back to top</a>
@@ -530,6 +532,7 @@ This is not a minimal container. This is an entire development workstation.
 | `jinja2`, `markdown` | Templating and markdown rendering |
 | `pyyaml`, `python-dotenv` | Config file parsing |
 | `rich`, `click`, `tqdm` | Beautiful CLIs and progress bars |
+| `desloppify`, `bandit`, `tree-sitter` | Code-quality scans, Python security checks, parser-backed code analysis |
 | `playwright` | Browser automation (Chromium already configured and ready) |
 
 </details>
@@ -649,6 +652,41 @@ The full image ships eight AI CLIs. The slim image ships the five core CLIs.
 | **Pi Coding Agent** | `pi` | Configure through Pi | Supports multiple providers, full image only |
 
 > Claude Code is the primary CLI. The others are there because sometimes you want a second opinion, or a specific model's strengths, or you're comparing outputs. Having all of them one `Tab` away is the whole point.
+
+<p align="right">
+  <a href="#top">↑ back to top</a>
+</p>
+
+---
+
+## :mag: Desloppify
+
+Desloppify ships in both images as the `desloppify` command. It is passive by default. HolyClaude does not run scans, create `.desloppify/`, edit `.gitignore`, or change your mounted workspace unless you run Desloppify yourself.
+
+Use it inside a project:
+
+```bash
+desloppify scan --path .
+desloppify next
+```
+
+After you use scans in a project, add `.desloppify/` to that project's `.gitignore`.
+
+Optional global skill setup is controlled by `HOLYCLAUDE_DESLOPPIFY_SETUP`.
+
+| Value | Behavior |
+|-------|----------|
+| `off` | Default. No global skill setup. The CLI is still installed. |
+| `claude` | Runs `desloppify setup --interface claude` at container start. |
+| `codex` | Runs `desloppify setup --interface codex` at container start. |
+| `gemini` | Runs `desloppify setup --interface gemini` at container start. |
+| `all` | Expands to `claude,codex,gemini`. |
+| `claude,codex` | Any comma-separated subset of `claude`, `codex`, and `gemini`. |
+| `opencode` | Full image only. Sets up the OpenCode-native global skill path. |
+
+OpenCode can also discover Claude-compatible skills from `~/.claude/skills`, so `all` does not include `opencode`. Do not combine `claude` and `opencode` in automatic setup; HolyClaude warns and skips `opencode` to avoid duplicate skill discovery. If `OPENCODE_CONFIG_DIR` is set, HolyClaude also skips automatic OpenCode setup because Desloppify writes to the standard `~/.config/opencode` path.
+
+Desloppify also supports these manual upstream targets if you want to configure them yourself: `cursor`, `copilot`, `windsurf`, `qwen`, `amp`, `rovodev`, `droid`, and `hermes`.
 
 <p align="right">
   <a href="#top">↑ back to top</a>
@@ -1198,6 +1236,7 @@ The HolyClaude Docker image includes third-party software, each under its own li
 | Component | License | Source |
 |-----------|---------|--------|
 | CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
 

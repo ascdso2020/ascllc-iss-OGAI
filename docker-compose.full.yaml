@@ -75,3 +75,10 @@ services:
       # Raw codex CLI first-boot mode. Only used when creating a new ~/.codex/config.toml.
       # Existing Codex configs are not overwritten.
       # - HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE=acceptEdits
+
+      # --- Desloppify global skill setup (optional) ---
+      # The desloppify CLI is always installed and passive. This only configures
+      # global agent guidance; scans still run only when you call desloppify.
+      # Valid: off, all, claude, codex, gemini, opencode, or comma-separated subsets.
+      # all expands to claude,codex,gemini. opencode is full-image only.
+      # - HOLYCLAUDE_DESLOPPIFY_SETUP=off

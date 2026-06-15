@@ -60,6 +60,17 @@ for their source and license files.
 - Source: https://github.com/nodejs/node
 - Version: 26.3.0 base image
 
+## Desloppify
+
+- License: OSNL-0.2
+- Copyright: Peter O'Malley
+- Source: https://github.com/peteromallet/desloppify
+- PyPI: https://pypi.org/project/desloppify/
+- Version: 1.0, installed in both image variants
+
+Desloppify is installed as a passive CLI. HolyClaude does not run scans,
+create `.desloppify/`, or modify project files unless a user runs Desloppify.
+
 ## Pi Coding Agent (@earendil-works/pi-coding-agent)
 
 - License: MIT

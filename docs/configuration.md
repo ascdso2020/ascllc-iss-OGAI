@@ -107,6 +107,29 @@ HolyClaude provides configurable near-parity permission modes for Codex. These s
 
 ---
 
+## Desloppify Setup
+
+Desloppify is installed in both image variants as the `desloppify` command. It is passive by default. HolyClaude does not run scans, create `.desloppify/`, edit `.gitignore`, or touch mounted project files unless you run Desloppify yourself.
+
+| Variable | Default | Valid values | Behavior |
+|----------|---------|--------------|----------|
+| `HOLYCLAUDE_DESLOPPIFY_SETUP` | `off` | `off`, `all`, `claude`, `codex`, `gemini`, `opencode`, comma-separated subsets | Optional global Desloppify skill setup at container start. `off` disables setup only; the CLI stays installed. |
+
+Normal project usage stays manual:
+
+```bash
+desloppify scan --path .
+desloppify next
+```
+
+After scanning a project, add `.desloppify/` to that project's `.gitignore`.
+
+`all` expands to `claude,codex,gemini`. OpenCode is full-image only and must be requested as `opencode`. Do not combine `claude` and `opencode` in automatic setup because OpenCode can discover Claude-compatible skills from `~/.claude/skills`; HolyClaude warns and skips `opencode` in that case. If `OPENCODE_CONFIG_DIR` is set, HolyClaude also warns and skips automatic OpenCode setup because Desloppify writes to the standard `~/.config/opencode` path.
+
+Manual upstream-supported setup targets are available through Desloppify itself: `cursor`, `copilot`, `windsurf`, `qwen`, `amp`, `rovodev`, `droid`, and `hermes`.
+
+---
+
 ## Volumes
 
 | Host Path | Container Path | Purpose |
