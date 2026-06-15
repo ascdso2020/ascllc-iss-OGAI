@@ -207,7 +207,7 @@ HolyClaude는 Anthropic의 **공식 Claude Code CLI**를 실행합니다. 기존
 | Cursor | Cursor API 키 (`CURSOR_API_KEY`) |
 | TaskMaster AI | AI 제공자 키 사용 (Anthropic, OpenAI 등) |
 | Junie | JetBrains 계정 (JetBrains AI 구독) |
-| OpenCode | `opencode` TUI로 설정 (여러 제공자 지원) |
+| OpenCode | `opencode` TUI로 설정 (OpenRouter 및 여러 제공자 지원) |
 | Pi Coding Agent | `pi`로 설정 (여러 제공자 지원) |
 
 > **HolyClaude는 무료 오픈 소스입니다.** AI 제공자에게만 사용량에 따라 지불하면 되며, 이미 그렇게 하고 있는 것과 동일합니다. 자격 증명을 프록시하거나 가로채거나 건드리지 않습니다. 로컬 바인드 마운트에 저장됩니다.
@@ -555,7 +555,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **Cursor** | `cursor` | Cursor의 AI 에이전트 |
 | **TaskMaster AI** | `task-master` | 작업 계획 및 오케스트레이션 |
 | **Junie** | `junie` | JetBrains의 AI 코딩 에이전트 |
-| **OpenCode** | `opencode` | 오픈 소스 AI 에이전트 (여러 제공자) |
+| **OpenCode** | `opencode` | 오픈 소스 AI 에이전트 (OpenRouter 및 여러 제공자) |
 | **Pi Coding Agent** | `pi` | 미니멀 에이전트 하네스 (여러 제공자) |
 
 8개의 AI CLI. 하나의 컨테이너. `Tab` 하나면 바로 전환. 다른 Docker 이미지는 이것을 제공하지 않습니다.
@@ -629,7 +629,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **Cursor** | `cursor` | `CURSOR_API_KEY` 환경 변수 | API 키 |
 | **TaskMaster AI** | `task-master` | 기존 AI 제공자 키 사용 | 설정된 키로 작동 |
 | **Junie** | `junie` | JetBrains AI 구독 | JetBrains 계정 필요 |
-| **OpenCode** | `opencode` | TUI로 설정 | 여러 제공자 지원 |
+| **OpenCode** | `opencode` | TUI로 설정 | OpenRouter 및 여러 제공자 지원; full image 전용 |
 | **Pi Coding Agent** | `pi` | Pi로 설정 | 여러 제공자 지원 |
 
 > Claude Code가 기본 CLI입니다. 나머지는 두 번째 의견이 필요할 때, 특정 모델의 강점을 활용할 때, 또는 출력을 비교할 때 사용합니다. `Tab` 하나면 모두 사용 가능하다는 것이 핵심입니다.

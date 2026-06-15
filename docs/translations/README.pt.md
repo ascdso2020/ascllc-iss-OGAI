@@ -207,7 +207,7 @@ HolyClaude executa o **Claude Code CLI oficial** da Anthropic. Sua conta existen
 | Cursor | Chave de API Cursor (`CURSOR_API_KEY`) |
 | TaskMaster AI | Usa suas chaves de provedor de IA (Anthropic, OpenAI, etc.) |
 | Junie | Conta JetBrains (assinatura JetBrains AI) |
-| OpenCode | Configure via TUI do `opencode` (suporta múltiplos provedores) |
+| OpenCode | Configure via TUI do `opencode` (suporta OpenRouter e múltiplos provedores) |
 | Pi Coding Agent | Configure via `pi` (suporta múltiplos provedores) |
 
 > **HolyClaude é gratuito e open source.** Você só paga aos seus provedores de IA pelo uso, como já faz. Não fazemos proxy, interceptação nem tocamos nas suas credenciais. Elas ficam no seu bind mount local.
@@ -555,7 +555,7 @@ Este não é um container mínimo. Esta é uma estação de trabalho de desenvol
 | **Cursor** | `cursor` | Agente IA do Cursor |
 | **TaskMaster AI** | `task-master` | Planejamento e orquestração de tarefas |
 | **Junie** | `junie` | Agente de codificação IA da JetBrains |
-| **OpenCode** | `opencode` | Agente IA open source (múltiplos provedores) |
+| **OpenCode** | `opencode` | Agente IA open source (OpenRouter e múltiplos provedores) |
 | **Pi Coding Agent** | `pi` | Harness de agente minimalista (múltiplos provedores) |
 
 Oito CLIs de IA. Um container. Mude entre eles instantaneamente. Nenhuma outra imagem Docker faz isso.
@@ -629,7 +629,7 @@ Oito CLIs de IA. Um container. Nenhuma outra imagem Docker oferece isso.
 | **Cursor** | `cursor` | Variável de ambiente `CURSOR_API_KEY` | Chave de API |
 | **TaskMaster AI** | `task-master` | Usa chaves de provedor de IA existentes | Funciona com chaves configuradas |
 | **Junie** | `junie` | Assinatura JetBrains AI | Conta JetBrains obrigatória |
-| **OpenCode** | `opencode` | Configure via TUI | Suporta múltiplos provedores |
+| **OpenCode** | `opencode` | Configure via TUI | Suporta OpenRouter e múltiplos provedores; somente full image |
 | **Pi Coding Agent** | `pi` | Configure via Pi | Suporta múltiplos provedores |
 
 > O Claude Code é o CLI principal. Os outros estão lá porque às vezes você quer uma segunda opinião, ou os pontos fortes de um modelo específico, ou está comparando resultados. Ter todos eles a um `Tab` de distância é o ponto central.

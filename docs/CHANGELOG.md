@@ -4,6 +4,11 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] - 06/15/2026
+
+### Changed
+- Clarified that full-image OpenCode is the supported OpenRouter and multi-provider path, including Claude-compatible skill discovery and upstream-dependent free model availability.
+
 ## [1.3.1] - 06/15/2026
 
 ### Added

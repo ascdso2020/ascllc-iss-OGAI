@@ -207,7 +207,7 @@ HolyClaude esegue la **Claude Code CLI ufficiale** di Anthropic. Il tuo account 
 | Cursor | Chiave API Cursor (`CURSOR_API_KEY`) |
 | TaskMaster AI | Usa le tue chiavi AI provider (Anthropic, OpenAI, ecc.) |
 | Junie | Account JetBrains (abbonamento JetBrains AI) |
-| OpenCode | Configura tramite TUI `opencode` (supporta più provider) |
+| OpenCode | Configura tramite TUI `opencode` (supporta OpenRouter e più provider) |
 | Pi Coding Agent | Configura tramite `pi` (supporta più provider) |
 
 > **HolyClaude è gratuito e open source.** Paghi solo i tuoi provider AI per l'utilizzo, come già fai. Non intercettiamo, non facciamo proxy e non tocchiamo le tue credenziali. Vivono nel tuo bind mount locale.
@@ -555,7 +555,7 @@ Questo non è un container minimale. Questa è un'intera workstation di sviluppo
 | **Cursor** | `cursor` | Agente AI di Cursor |
 | **TaskMaster AI** | `task-master` | Pianificazione e orchestrazione dei task |
 | **Junie** | `junie` | Agente di coding AI di JetBrains |
-| **OpenCode** | `opencode` | Agente AI open source (più provider) |
+| **OpenCode** | `opencode` | Agente AI open source (OpenRouter e più provider) |
 | **Pi Coding Agent** | `pi` | Harness agente minimale (più provider) |
 
 Otto CLI AI. Un container. Passa da una all'altra istantaneamente. Nessun'altra immagine Docker fa questo.
@@ -629,7 +629,7 @@ Otto CLI AI. Un container. Nessun'altra immagine Docker ti offre questo.
 | **Cursor** | `cursor` | Variabile d'ambiente `CURSOR_API_KEY` | Chiave API |
 | **TaskMaster AI** | `task-master` | Usa le chiavi AI provider esistenti | Funziona con le chiavi configurate |
 | **Junie** | `junie` | Abbonamento JetBrains AI | Account JetBrains richiesto |
-| **OpenCode** | `opencode` | Configura tramite TUI | Supporta più provider |
+| **OpenCode** | `opencode` | Configura tramite TUI | Supporta OpenRouter e più provider; solo full image |
 | **Pi Coding Agent** | `pi` | Configura tramite Pi | Supporta più provider |
 
 > Claude Code è la CLI principale. Le altre sono disponibili perché a volte vuoi un secondo parere, o i punti di forza di un modello specifico, o stai confrontando output. Averle tutte a portata di `Tab` è il punto centrale.

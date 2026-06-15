@@ -207,7 +207,7 @@ HolyClaude runs the **official Claude Code CLI** from Anthropic. Your existing a
 | Cursor | Cursor API key (`CURSOR_API_KEY`) |
 | TaskMaster AI | Uses your AI provider keys (Anthropic, OpenAI, etc.) |
 | Junie | JetBrains account (JetBrains AI subscription) |
-| OpenCode | Configure via `opencode` TUI (supports multiple providers) |
+| OpenCode | Configure via `opencode` TUI (OpenRouter and other providers) |
 | Pi Coding Agent | Configure through `pi` (supports multiple providers) |
 
 > **HolyClaude is free and open source.** You only pay your AI providers for usage, same as you already do. We don't proxy, intercept, or touch your credentials. They live in your local bind mount.
@@ -580,7 +580,7 @@ The full image includes everything above, plus:
 | CLI | Command | What it's for |
 |-----|---------|---------------|
 | **Junie** | `junie` | JetBrains' AI coding agent |
-| **OpenCode** | `opencode` | Open source AI agent (multiple providers) |
+| **OpenCode** | `opencode` | Open source AI agent (OpenRouter and other providers) |
 | **Pi Coding Agent** | `pi` | Minimal agent harness (multiple providers) |
 
 </details>
@@ -648,10 +648,12 @@ The full image ships eight AI CLIs. The slim image ships the five core CLIs.
 | **Cursor** | `cursor` | `CURSOR_API_KEY` env var | API key |
 | **TaskMaster AI** | `task-master` | Uses existing AI provider keys | Works with configured keys |
 | **Junie** | `junie` | JetBrains AI subscription | JetBrains account required, full image only |
-| **OpenCode** | `opencode` | Configure via TUI | Supports multiple providers, full image only |
+| **OpenCode** | `opencode` | Configure via TUI | OpenRouter and other providers, full image only |
 | **Pi Coding Agent** | `pi` | Configure through Pi | Supports multiple providers, full image only |
 
 > Claude Code is the primary CLI. The others are there because sometimes you want a second opinion, or a specific model's strengths, or you're comparing outputs. Having all of them one `Tab` away is the whole point.
+
+OpenCode is the full-image path for [OpenRouter](https://openrouter.ai/docs/cookbook/coding-agents/opencode-integration) and multi-provider model routing. Configure it inside `opencode`; free model availability depends on OpenRouter and provider account limits, not HolyClaude.
 
 <p align="right">
   <a href="#top">↑ back to top</a>

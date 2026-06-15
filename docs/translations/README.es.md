@@ -207,7 +207,7 @@ HolyClaude ejecuta el **CLI oficial de Claude Code** de Anthropic. Tu cuenta exi
 | Cursor | Clave de API de Cursor (`CURSOR_API_KEY`) |
 | TaskMaster AI | Usa las claves de tu proveedor de IA (Anthropic, OpenAI, etc.) |
 | Junie | Cuenta de JetBrains (suscripcion JetBrains AI) |
-| OpenCode | Configurar via TUI de `opencode` (admite multiples proveedores) |
+| OpenCode | Configurar via TUI de `opencode` (admite OpenRouter y multiples proveedores) |
 | Pi Coding Agent | Configurar mediante `pi` (admite multiples proveedores) |
 
 > **HolyClaude es gratuito y de codigo abierto.** Solo pagas a tus proveedores de IA por el uso, igual que ya lo haces. No hacemos proxy, no interceptamos ni tocamos tus credenciales. Viven en tu bind mount local.
@@ -555,7 +555,7 @@ Este no es un contenedor minimalista. Es una estacion de trabajo de desarrollo c
 | **Cursor** | `cursor` | El agente de IA de Cursor |
 | **TaskMaster AI** | `task-master` | Planificacion y orquestacion de tareas |
 | **Junie** | `junie` | El agente de codificacion de IA de JetBrains |
-| **OpenCode** | `opencode` | Agente de IA de codigo abierto (multiples proveedores) |
+| **OpenCode** | `opencode` | Agente de IA de codigo abierto (OpenRouter y multiples proveedores) |
 | **Pi Coding Agent** | `pi` | Harness de agente minimalista (multiples proveedores) |
 
 Ocho CLIs de IA. Un contenedor. Cambia entre ellos al instante. Ninguna otra imagen Docker hace esto.
@@ -629,7 +629,7 @@ Ocho CLIs de IA. Un contenedor. Ninguna otra imagen Docker te da esto.
 | **Cursor** | `cursor` | Variable de entorno `CURSOR_API_KEY` | Clave de API |
 | **TaskMaster AI** | `task-master` | Usa las claves de proveedor de IA existentes | Funciona con las claves configuradas |
 | **Junie** | `junie` | Suscripcion JetBrains AI | Se requiere cuenta de JetBrains |
-| **OpenCode** | `opencode` | Configurar via TUI | Admite multiples proveedores |
+| **OpenCode** | `opencode` | Configurar via TUI | Admite OpenRouter y multiples proveedores; solo full image |
 | **Pi Coding Agent** | `pi` | Configurar mediante Pi | Admite multiples proveedores |
 
 > Claude Code es el CLI principal. Los demas estan ahi porque a veces quieres una segunda opinion, o las fortalezas de un modelo especifico, o estas comparando resultados. Tenerlos todos a un `Tab` de distancia es todo el punto.

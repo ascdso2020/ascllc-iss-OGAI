@@ -207,7 +207,7 @@ HolyClaude запускает **официальный Claude Code CLI** от An
 | Cursor | Cursor API-ключ (`CURSOR_API_KEY`) |
 | TaskMaster AI | Использует ваши ключи AI-провайдеров (Anthropic, OpenAI и др.) |
 | Junie | Аккаунт JetBrains (подписка JetBrains AI) |
-| OpenCode | Настройка через TUI `opencode` (поддерживает несколько провайдеров) |
+| OpenCode | Настройка через TUI `opencode` (поддерживает OpenRouter и несколько провайдеров) |
 | Pi Coding Agent | Настройка через `pi` (поддерживает несколько провайдеров) |
 
 > **HolyClaude бесплатен и с открытым исходным кодом.** Вы платите только своим AI-провайдерам за использование, как уже делаете. Мы не проксируем, не перехватываем и не касаемся ваших учётных данных. Они живут в вашем локальном bind-монтировании.
@@ -555,7 +555,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **Cursor** | `cursor` | AI-агент Cursor |
 | **TaskMaster AI** | `task-master` | Планирование и оркестрация задач |
 | **Junie** | `junie` | AI-агент кодирования от JetBrains |
-| **OpenCode** | `opencode` | Open source AI-агент (несколько провайдеров) |
+| **OpenCode** | `opencode` | Open source AI-агент (OpenRouter и несколько провайдеров) |
 | **Pi Coding Agent** | `pi` | Минимальный агентный harness (несколько провайдеров) |
 
 Восемь AI CLI. Один контейнер. Мгновенное переключение между ними. Ни один другой Docker-образ этого не делает.
@@ -629,7 +629,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **Cursor** | `cursor` | Переменная окружения `CURSOR_API_KEY` | API-ключ |
 | **TaskMaster AI** | `task-master` | Использует существующие ключи AI-провайдеров | Работает с настроенными ключами |
 | **Junie** | `junie` | Подписка JetBrains AI | Требуется аккаунт JetBrains |
-| **OpenCode** | `opencode` | Настройка через TUI | Поддерживает несколько провайдеров |
+| **OpenCode** | `opencode` | Настройка через TUI | Поддерживает OpenRouter и несколько провайдеров; только full image |
 | **Pi Coding Agent** | `pi` | Настройка через Pi | Поддерживает несколько провайдеров |
 
 > Claude Code — основной CLI. Остальные нужны, потому что иногда хочется второго мнения, или специфических сильных сторон конкретной модели, или вы сравниваете результаты. Иметь все они на расстоянии одного нажатия `Tab` — в этом весь смысл.

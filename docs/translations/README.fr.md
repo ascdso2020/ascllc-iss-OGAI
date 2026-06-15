@@ -207,7 +207,7 @@ HolyClaude exécute le **Claude Code CLI officiel** d'Anthropic. Votre compte ex
 | Cursor | Clé API Cursor (`CURSOR_API_KEY`) |
 | TaskMaster AI | Utilise vos clés de fournisseur IA (Anthropic, OpenAI, etc.) |
 | Junie | Compte JetBrains (abonnement JetBrains AI) |
-| OpenCode | Configurer via le TUI `opencode` (supporte plusieurs fournisseurs) |
+| OpenCode | Configurer via le TUI `opencode` (supporte OpenRouter et plusieurs fournisseurs) |
 | Pi Coding Agent | Configurer via `pi` (supporte plusieurs fournisseurs) |
 
 > **HolyClaude est gratuit et open source.** Vous ne payez vos fournisseurs IA que pour l'usage, comme vous le faites déjà. Nous ne proxifions pas, n'interceptons pas et ne touchons pas à vos identifiants. Ils vivent dans votre bind mount local.
@@ -555,7 +555,7 @@ Ce n'est pas un conteneur minimal. C'est un poste de travail de développement c
 | **Cursor** | `cursor` | Agent IA de Cursor |
 | **TaskMaster AI** | `task-master` | Planification de tâches et orchestration |
 | **Junie** | `junie` | Agent de codage IA de JetBrains |
-| **OpenCode** | `opencode` | Agent IA open source (plusieurs fournisseurs) |
+| **OpenCode** | `opencode` | Agent IA open source (OpenRouter et plusieurs fournisseurs) |
 | **Pi Coding Agent** | `pi` | Harnais agent minimal (plusieurs fournisseurs) |
 
 Huit CLI IA. Un seul conteneur. Passez de l'un à l'autre instantanément. Aucune autre image Docker ne fait ça.
@@ -629,7 +629,7 @@ Huit CLI IA. Un seul conteneur. Aucune autre image Docker ne vous donne ça.
 | **Cursor** | `cursor` | Variable d'env `CURSOR_API_KEY` | Clé API |
 | **TaskMaster AI** | `task-master` | Utilise les clés de fournisseur IA existantes | Fonctionne avec les clés configurées |
 | **Junie** | `junie` | Abonnement JetBrains AI | Compte JetBrains requis |
-| **OpenCode** | `opencode` | Configurer via TUI | Supporte plusieurs fournisseurs |
+| **OpenCode** | `opencode` | Configurer via TUI | Supporte OpenRouter et plusieurs fournisseurs; image full seulement |
 | **Pi Coding Agent** | `pi` | Configurer via Pi | Supporte plusieurs fournisseurs |
 
 > Claude Code est le CLI principal. Les autres sont là parce que vous voulez parfois un deuxième avis, ou les points forts d'un modèle spécifique, ou que vous comparez des sorties. Les avoir tous à un `Tab` de distance, c'est tout l'intérêt.

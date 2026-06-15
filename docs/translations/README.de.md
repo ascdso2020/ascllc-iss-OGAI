@@ -207,7 +207,7 @@ HolyClaude führt die **offizielle Claude Code CLI** von Anthropic aus. Dein bes
 | Cursor | Cursor API-Key (`CURSOR_API_KEY`) |
 | TaskMaster AI | Verwendet deine KI-Anbieter-Keys (Anthropic, OpenAI, etc.) |
 | Junie | JetBrains-Konto (JetBrains AI-Abonnement) |
-| OpenCode | Konfiguration über `opencode` TUI (unterstützt mehrere Anbieter) |
+| OpenCode | Konfiguration über `opencode` TUI (unterstützt OpenRouter und mehrere Anbieter) |
 | Pi Coding Agent | Über `pi` konfigurieren (unterstützt mehrere Anbieter) |
 
 > **HolyClaude ist kostenlos und Open Source.** Du zahlst deinen KI-Anbietern nur für die Nutzung, genau wie bisher. Wir proxieren, interceptieren oder berühren deine Zugangsdaten nicht. Sie liegen in deinem lokalen Bind-Mount.
@@ -555,7 +555,7 @@ Das ist kein minimaler Container. Das ist eine komplette Entwicklungsumgebung.
 | **Cursor** | `cursor` | Cursors KI-Agent |
 | **TaskMaster AI** | `task-master` | Aufgabenplanung und Orchestrierung |
 | **Junie** | `junie` | JetBrains' KI-Coding-Agent |
-| **OpenCode** | `opencode` | Open-Source-KI-Agent (mehrere Anbieter) |
+| **OpenCode** | `opencode` | Open-Source-KI-Agent (OpenRouter und mehrere Anbieter) |
 | **Pi Coding Agent** | `pi` | Minimaler Agent-Harness (mehrere Anbieter) |
 
 Acht KI-CLIs. Ein Container. Wechsle sofort zwischen ihnen. Kein anderes Docker-Image macht das.
@@ -629,7 +629,7 @@ Acht KI-CLIs. Ein Container. Kein anderes Docker-Image bietet dir das.
 | **Cursor** | `cursor` | `CURSOR_API_KEY`-Umgebungsvariable | API-Key |
 | **TaskMaster AI** | `task-master` | Verwendet vorhandene KI-Anbieter-Keys | Funktioniert mit konfigurierten Keys |
 | **Junie** | `junie` | JetBrains AI-Abonnement | JetBrains-Konto erforderlich |
-| **OpenCode** | `opencode` | Konfiguration über TUI | Unterstützt mehrere Anbieter |
+| **OpenCode** | `opencode` | Konfiguration über TUI | Unterstützt OpenRouter und mehrere Anbieter; nur Full-Image |
 | **Pi Coding Agent** | `pi` | Über Pi konfigurieren | Unterstützt mehrere Anbieter |
 
 > Claude Code ist die primäre CLI. Die anderen sind da, weil man manchmal eine zweite Meinung möchte, oder die Stärken eines bestimmten Modells, oder man Ausgaben vergleicht. Alle mit einem `Tab`-Druck zur Verfügung zu haben ist der ganze Punkt.

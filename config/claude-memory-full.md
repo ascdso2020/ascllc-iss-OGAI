@@ -78,7 +78,7 @@ The `--break-system-packages` flag is required (no venv in container context).
 | **Cursor** | `cursor` | Requires `CURSOR_API_KEY` env var. Config persists across rebuilds. |
 | **TaskMaster AI** | `task-master` | Task planning and management |
 | **Junie** | `junie` | JetBrains AI coding agent (requires JetBrains account) |
-| **OpenCode** | `opencode` | Open source AI agent (supports multiple providers) |
+| **OpenCode** | `opencode` | Open source AI agent (OpenRouter and other providers) |
 | **Pi Coding Agent** | `pi` | Minimal agent harness (supports multiple providers) |
 
 ## Desloppify
@@ -88,6 +88,7 @@ The `--break-system-packages` flag is required (no venv in container context).
 - Optional global skill setup is controlled by `HOLYCLAUDE_DESLOPPIFY_SETUP`. Valid values: `off`, `all`, `claude`, `codex`, `gemini`, `opencode`, or comma-separated subsets.
 - `all` expands to `claude,codex,gemini`. OpenCode is not included in `all`.
 - OpenCode can discover Claude-compatible skills from `~/.claude/skills`. Do not combine `claude` and `opencode` automatic setup.
+- Configure OpenRouter from the `opencode` TUI. Free model availability depends on OpenRouter and provider account limits.
 - Normal project usage: `desloppify scan --path .` then `desloppify next`. After scans, add `.desloppify/` to that project's `.gitignore`.
 
 ## System Tools
