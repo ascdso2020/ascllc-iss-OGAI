@@ -22,7 +22,7 @@
 
 ### Aufhoren zu konfigurieren. Anfangen zu bauen.
 
-Ein Befehl. Vollständige KI-Entwicklungsumgebung. Claude Code, Web-UI, Headless-Browser, 7 KI-CLIs, 50+ Entwicklungstools — containerisiert und einsatzbereit.
+Ein Befehl. Vollständige KI-Entwicklungsumgebung. Claude Code, Web-UI, Headless-Browser, 8 KI-CLIs, 50+ Entwicklungstools — containerisiert und einsatzbereit.
 
 **Du hättest 2 Stunden damit verbracht, das manuell einzurichten. Oder du führst einfach `docker compose up` aus.**
 
@@ -163,7 +163,7 @@ Also habe ich einen Container erstellt, der das alles erledigt. Und dann habe ic
 | **Claude Code** | Vorinstalliert, vorkonfiguriert, einsatzbereit | Installieren, konfigurieren, hängengebliebenen Installer debuggen, WORKDIR reparieren |
 | **Web-UI** | CloudCLI inklusive mit Plugins | Eine Web-UI finden, installieren, konfigurieren, mit Claude verdrahten |
 | **Headless-Browser** | Chromium + Xvfb + Playwright, konfiguriert | Chromium installieren, Xvfb installieren, Display :99 konfigurieren, shm reparieren, Sandbox reparieren, seccomp reparieren... |
-| **KI-CLIs** | 7 Anbieter, ein Container | Jeden einzeln über 3 Paketmanager installieren |
+| **KI-CLIs** | 8 Anbieter, ein Container | Jeden einzeln über 3 Paketmanager installieren |
 | **Entwicklungstools** | 50+ Tools, einsatzbereit | `apt-get install` / `npm i -g` / `pip install` für die nächste Stunde |
 | **Prozessverwaltung** | s6-overlay (Auto-Neustart, sauberes Herunterfahren) | Eigene supervisord-Konfiguration schreiben oder hoffen, dass Docker restart funktioniert |
 | **Persistenz** | Bind Mounts, Zugangsdaten überleben alles | Docker Volumes verstehen, debuggen "warum ist das ein Verzeichnis und keine Datei" |
@@ -207,6 +207,7 @@ HolyClaude führt die **offizielle Claude Code CLI** von Anthropic aus. Dein bes
 | TaskMaster AI | Verwendet deine KI-Anbieter-Keys (Anthropic, OpenAI, etc.) |
 | Junie | JetBrains-Konto (JetBrains AI-Abonnement) |
 | OpenCode | Konfiguration über `opencode` TUI (unterstützt mehrere Anbieter) |
+| Pi Coding Agent | Über `pi` konfigurieren (unterstützt mehrere Anbieter) |
 
 > **HolyClaude ist kostenlos und Open Source.** Du zahlst deinen KI-Anbietern nur für die Nutzung, genau wie bisher. Wir proxieren, interceptieren oder berühren deine Zugangsdaten nicht. Sie liegen in deinem lokalen Bind-Mount.
 
@@ -436,7 +437,7 @@ Diese Werte werden von Docker Compose auf dem Host gelesen. Sie sind keine Conta
 | **Benutzer-Mapping** | Dateiberechtigungen zwischen Container und Host | Wenn du "permission denied" bekommst (`id -u` und `id -g` auf deinem Host) |
 | **SMB/CIFS** | Dateibeobachter-Polling-Modus | Nur wenn deine Volumes auf einem NAS oder Netzwerk-Share liegen |
 | **Benachrichtigungen** | Push-Benachrichtigungen über Apprise (Discord, Telegram, Slack, E-Mail, 100+ Dienste) | Wenn du weggehst und wissen möchtest, wenn Claude fertig ist |
-| **KI-Anbieter** | API-Keys für Gemini, Codex, Cursor, Junie, OpenCode | Wenn du andere KI-CLIs als Claude verwenden möchtest |
+| **KI-Anbieter** | API-Keys für Gemini, Codex, Cursor, Junie, OpenCode, Pi Coding Agent | Wenn du andere KI-CLIs als Claude verwenden möchtest |
 
 > **Jede einzelne Umgebungsvariable ist optional.** Der Container läuft problemlos mit nur `TZ=UTC`. Alles andere hat sinnvolle Standardwerte oder wird über die Web-UI gehandhabt.
 
@@ -552,8 +553,9 @@ Das ist kein minimaler Container. Das ist eine komplette Entwicklungsumgebung.
 | **TaskMaster AI** | `task-master` | Aufgabenplanung und Orchestrierung |
 | **Junie** | `junie` | JetBrains' KI-Coding-Agent |
 | **OpenCode** | `opencode` | Open-Source-KI-Agent (mehrere Anbieter) |
+| **Pi Coding Agent** | `pi` | Minimaler Agent-Harness (mehrere Anbieter) |
 
-Sieben KI-CLIs. Ein Container. Wechsle sofort zwischen ihnen. Kein anderes Docker-Image macht das.
+Acht KI-CLIs. Ein Container. Wechsle sofort zwischen ihnen. Kein anderes Docker-Image macht das.
 
 </details>
 
@@ -614,7 +616,7 @@ Das Full-Image enthält alles oben Genannte, plus:
 
 ## :robot: AI CLI Providers
 
-Sieben KI-CLIs. Ein Container. Kein anderes Docker-Image bietet dir das.
+Acht KI-CLIs. Ein Container. Kein anderes Docker-Image bietet dir das.
 
 | Anbieter | Befehl | Authentifizierung | Abonnement möglich? |
 |----------|---------|--------------------|--------------------|
@@ -625,6 +627,7 @@ Sieben KI-CLIs. Ein Container. Kein anderes Docker-Image bietet dir das.
 | **TaskMaster AI** | `task-master` | Verwendet vorhandene KI-Anbieter-Keys | Funktioniert mit konfigurierten Keys |
 | **Junie** | `junie` | JetBrains AI-Abonnement | JetBrains-Konto erforderlich |
 | **OpenCode** | `opencode` | Konfiguration über TUI | Unterstützt mehrere Anbieter |
+| **Pi Coding Agent** | `pi` | Über Pi konfigurieren | Unterstützt mehrere Anbieter |
 
 > Claude Code ist die primäre CLI. Die anderen sind da, weil man manchmal eine zweite Meinung möchte, oder die Stärken eines bestimmten Modells, oder man Ausgaben vergleicht. Alle mit einem `Tab`-Druck zur Verfügung zu haben ist der ganze Punkt.
 

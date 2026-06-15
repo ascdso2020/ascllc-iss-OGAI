@@ -78,6 +78,7 @@ The `--break-system-packages` flag is required (no venv in container context).
 | **TaskMaster AI** | `task-master` | Task planning and management |
 | **Junie** | `junie` | JetBrains AI coding agent (requires JetBrains account) |
 | **OpenCode** | `opencode` | Open source AI agent (supports multiple providers) |
+| **Pi Coding Agent** | `pi` | Minimal agent harness (supports multiple providers) |
 
 ## System Tools
 

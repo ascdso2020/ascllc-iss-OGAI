@@ -22,7 +22,7 @@
 
 ### Smetti di configurare. Inizia a costruire.
 
-Un comando. Una workstation di sviluppo AI completa. Claude Code, interfaccia web, browser headless, 7 CLI AI, 50+ strumenti di sviluppo — containerizzati e pronti all'uso.
+Un comando. Una workstation di sviluppo AI completa. Claude Code, interfaccia web, browser headless, 8 CLI AI, 50+ strumenti di sviluppo — containerizzati e pronti all'uso.
 
 **Avresti passato 2 ore a configurare tutto manualmente. Oppure puoi semplicemente fare `docker compose up`.**
 
@@ -163,7 +163,7 @@ Così ho creato un container che fa tutto. E poi ho incontrato ogni possibile bu
 | **Claude Code** | Pre-installato, pre-configurato, pronto | Installa, configura, fai debug del blocco dell'installer, correggi WORKDIR |
 | **Interfaccia web** | CloudCLI incluso con plugin | Trova un'interfaccia web, installala, configurala, collegala a Claude |
 | **Browser headless** | Chromium + Xvfb + Playwright, configurati | Installa Chromium, installa Xvfb, configura il display :99, correggi shm, sandbox, seccomp... |
-| **CLI AI** | 7 provider, un container | Installa ognuna separatamente su 3 package manager |
+| **CLI AI** | 8 provider, un container | Installa ognuna separatamente su 3 package manager |
 | **Strumenti di sviluppo** | 50+ strumenti, pronti | `apt-get install` / `npm i -g` / `pip install` per la prossima ora |
 | **Gestione dei processi** | s6-overlay (riavvio automatico, shutdown controllato) | Scrivi la tua configurazione supervisord o spera che il restart di Docker funzioni |
 | **Persistenza** | Bind mount, le credenziali sopravvivono a tutto | Capire i volumi Docker, fare debug di "perché questa è una directory e non un file" |
@@ -207,6 +207,7 @@ HolyClaude esegue la **Claude Code CLI ufficiale** di Anthropic. Il tuo account 
 | TaskMaster AI | Usa le tue chiavi AI provider (Anthropic, OpenAI, ecc.) |
 | Junie | Account JetBrains (abbonamento JetBrains AI) |
 | OpenCode | Configura tramite TUI `opencode` (supporta più provider) |
+| Pi Coding Agent | Configura tramite `pi` (supporta più provider) |
 
 > **HolyClaude è gratuito e open source.** Paghi solo i tuoi provider AI per l'utilizzo, come già fai. Non intercettiamo, non facciamo proxy e non tocchiamo le tue credenziali. Vivono nel tuo bind mount locale.
 
@@ -436,7 +437,7 @@ Questi valori vengono letti da Docker Compose sull'host. Non sono variabili d'am
 | **User mapping** | Permessi dei file tra container e host | Se ricevi errori "permission denied" (`id -u` e `id -g` sul tuo host) |
 | **SMB/CIFS** | Modalità polling del file watcher | Solo se i tuoi volumi si trovano su NAS o condivisione di rete |
 | **Notifications** | Avvisi push tramite Apprise (Discord, Telegram, Slack, Email, 100+ servizi) | Se vuoi allontanarti e sapere quando Claude ha finito |
-| **AI providers** | Chiavi API per Gemini, Codex, Cursor, Junie, OpenCode | Se vuoi usare CLI AI diverse da Claude |
+| **AI providers** | Chiavi API per Gemini, Codex, Cursor, Junie, OpenCode, Pi Coding Agent | Se vuoi usare CLI AI diverse da Claude |
 
 > **Ogni singola variabile d'ambiente è opzionale.** Il container funziona perfettamente con solo `TZ=UTC`. Tutto il resto ha valori predefiniti ragionevoli o viene gestito tramite l'interfaccia web.
 
@@ -552,8 +553,9 @@ Questo non è un container minimale. Questa è un'intera workstation di sviluppo
 | **TaskMaster AI** | `task-master` | Pianificazione e orchestrazione dei task |
 | **Junie** | `junie` | Agente di coding AI di JetBrains |
 | **OpenCode** | `opencode` | Agente AI open source (più provider) |
+| **Pi Coding Agent** | `pi` | Harness agente minimale (più provider) |
 
-Sette CLI AI. Un container. Passa da una all'altra istantaneamente. Nessun'altra immagine Docker fa questo.
+Otto CLI AI. Un container. Passa da una all'altra istantaneamente. Nessun'altra immagine Docker fa questo.
 
 </details>
 
@@ -614,7 +616,7 @@ L'immagine full include tutto quanto sopra, più:
 
 ## :robot: Provider CLI AI
 
-Sette CLI AI. Un container. Nessun'altra immagine Docker ti offre questo.
+Otto CLI AI. Un container. Nessun'altra immagine Docker ti offre questo.
 
 | Provider | Comando | Come autenticarsi | Abbonamento supportato? |
 |----------|---------|--------------------|--------------------|
@@ -625,6 +627,7 @@ Sette CLI AI. Un container. Nessun'altra immagine Docker ti offre questo.
 | **TaskMaster AI** | `task-master` | Usa le chiavi AI provider esistenti | Funziona con le chiavi configurate |
 | **Junie** | `junie` | Abbonamento JetBrains AI | Account JetBrains richiesto |
 | **OpenCode** | `opencode` | Configura tramite TUI | Supporta più provider |
+| **Pi Coding Agent** | `pi` | Configura tramite Pi | Supporta più provider |
 
 > Claude Code è la CLI principale. Le altre sono disponibili perché a volte vuoi un secondo parere, o i punti di forza di un modello specifico, o stai confrontando output. Averle tutte a portata di `Tab` è il punto centrale.
 

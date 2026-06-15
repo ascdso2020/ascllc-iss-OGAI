@@ -22,7 +22,7 @@
 
 ### Deja de configurar. Empieza a construir.
 
-Un solo comando. Estacion de trabajo de IA completa. Claude Code, interfaz web, navegador headless, 7 CLIs de IA, mas de 50 herramientas de desarrollo, todo en contenedor y listo para usar.
+Un solo comando. Estacion de trabajo de IA completa. Claude Code, interfaz web, navegador headless, 8 CLIs de IA, mas de 50 herramientas de desarrollo, todo en contenedor y listo para usar.
 
 **Ibas a pasar 2 horas configurando esto manualmente. O simplemente puedes hacer `docker compose up`.**
 
@@ -163,7 +163,7 @@ Asi que hice un contenedor que lo hace todo. Y luego encontre cada error posible
 | **Claude Code** | Pre-instalado, pre-configurado, listo | Instalar, configurar, depurar el instalador colgado, arreglar WORKDIR |
 | **Interfaz web** | CloudCLI incluido con plugins | Buscar una interfaz web, instalarla, configurarla, conectarla a Claude |
 | **Navegador headless** | Chromium + Xvfb + Playwright, configurado | Instalar Chromium, instalar Xvfb, configurar display :99, arreglar shm, arreglar sandbox, arreglar seccomp... |
-| **CLIs de IA** | 7 proveedores, un contenedor | Instalar cada uno por separado en 3 gestores de paquetes |
+| **CLIs de IA** | 8 proveedores, un contenedor | Instalar cada uno por separado en 3 gestores de paquetes |
 | **Herramientas de dev** | Mas de 50 herramientas, listas | `apt-get install` / `npm i -g` / `pip install` durante la proxima hora |
 | **Gestion de procesos** | s6-overlay (reinicio automatico, apagado elegante) | Escribir tu propia configuracion de supervisord o confiar en que el reinicio de Docker funcione |
 | **Persistencia** | Bind mounts, las credenciales sobreviven todo | Descifrar los volumenes de Docker, depurar "por que esto es un directorio y no un archivo" |
@@ -207,6 +207,7 @@ HolyClaude ejecuta el **CLI oficial de Claude Code** de Anthropic. Tu cuenta exi
 | TaskMaster AI | Usa las claves de tu proveedor de IA (Anthropic, OpenAI, etc.) |
 | Junie | Cuenta de JetBrains (suscripcion JetBrains AI) |
 | OpenCode | Configurar via TUI de `opencode` (admite multiples proveedores) |
+| Pi Coding Agent | Configurar mediante `pi` (admite multiples proveedores) |
 
 > **HolyClaude es gratuito y de codigo abierto.** Solo pagas a tus proveedores de IA por el uso, igual que ya lo haces. No hacemos proxy, no interceptamos ni tocamos tus credenciales. Viven en tu bind mount local.
 
@@ -436,7 +437,7 @@ Estos valores los lee Docker Compose en el host. No son variables de entorno del
 | **Mapeo de usuario** | Permisos de archivo entre contenedor y host | Si obtienes "permission denied" (`id -u` e `id -g` en tu host) |
 | **SMB/CIFS** | Modo de sondeo del observador de archivos | Solo si tus volumenes estan en un NAS o recurso compartido de red |
 | **Notificaciones** | Alertas push via Apprise (Discord, Telegram, Slack, Email, mas de 100 servicios) | Si quieres alejarte y saber cuando Claude ha terminado |
-| **Proveedores de IA** | Claves de API para Gemini, Codex, Cursor, Junie, OpenCode | Si quieres usar CLIs de IA distintos de Claude |
+| **Proveedores de IA** | Claves de API para Gemini, Codex, Cursor, Junie, OpenCode, Pi Coding Agent | Si quieres usar CLIs de IA distintos de Claude |
 
 > **Absolutamente todas las variables de entorno son opcionales.** El contenedor funciona perfectamente con solo `TZ=UTC`. Todo lo demas tiene valores predeterminados sensatos o se gestiona a traves de la interfaz web.
 
@@ -552,8 +553,9 @@ Este no es un contenedor minimalista. Es una estacion de trabajo de desarrollo c
 | **TaskMaster AI** | `task-master` | Planificacion y orquestacion de tareas |
 | **Junie** | `junie` | El agente de codificacion de IA de JetBrains |
 | **OpenCode** | `opencode` | Agente de IA de codigo abierto (multiples proveedores) |
+| **Pi Coding Agent** | `pi` | Harness de agente minimalista (multiples proveedores) |
 
-Siete CLIs de IA. Un contenedor. Cambia entre ellos al instante. Ninguna otra imagen Docker hace esto.
+Ocho CLIs de IA. Un contenedor. Cambia entre ellos al instante. Ninguna otra imagen Docker hace esto.
 
 </details>
 
@@ -614,7 +616,7 @@ La imagen completa incluye todo lo anterior, mas:
 
 ## :robot: Proveedores de CLI de IA
 
-Siete CLIs de IA. Un contenedor. Ninguna otra imagen Docker te da esto.
+Ocho CLIs de IA. Un contenedor. Ninguna otra imagen Docker te da esto.
 
 | Proveedor | Comando | Como autenticarse | ¿Funciona con suscripcion? |
 |----------|---------|--------------------|--------------------|
@@ -625,6 +627,7 @@ Siete CLIs de IA. Un contenedor. Ninguna otra imagen Docker te da esto.
 | **TaskMaster AI** | `task-master` | Usa las claves de proveedor de IA existentes | Funciona con las claves configuradas |
 | **Junie** | `junie` | Suscripcion JetBrains AI | Se requiere cuenta de JetBrains |
 | **OpenCode** | `opencode` | Configurar via TUI | Admite multiples proveedores |
+| **Pi Coding Agent** | `pi` | Configurar mediante Pi | Admite multiples proveedores |
 
 > Claude Code es el CLI principal. Los demas estan ahi porque a veces quieres una segunda opinion, o las fortalezas de un modelo especifico, o estas comparando resultados. Tenerlos todos a un `Tab` de distancia es todo el punto.
 

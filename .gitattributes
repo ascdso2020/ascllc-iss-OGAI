@@ -1,0 +1,4 @@
+Dockerfile text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+s6-overlay/s6-rc.d/** text eol=lf

@@ -152,7 +152,10 @@ RUN if [ "$VARIANT" = "full" ]; then \
 # ---------- AI CLI providers ----------
 RUN npm i -g @google/gemini-cli@0.46.0 @openai/codex@0.139.0 task-master-ai@0.43.1
 USER claude
-RUN curl -fsSL https://cursor.com/install | bash
+RUN curl -fsSL https://cursor.com/install | bash && \
+    if [ ! -e /home/claude/.local/bin/cursor ] && [ -e /home/claude/.local/bin/cursor-agent ]; then \
+      ln -s /home/claude/.local/bin/cursor-agent /home/claude/.local/bin/cursor; \
+    fi
 USER root
 
 # ---------- Junie CLI (full only) ----------
@@ -165,6 +168,11 @@ USER root
 # ---------- OpenCode CLI (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g opencode-ai@1.17.7; \
+    fi
+
+# ---------- Pi Coding Agent (full only) ----------
+RUN if [ "$VARIANT" = "full" ]; then \
+    npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.79.3; \
     fi
 
 COPY vendor/artifacts/cloudcli-ai-cloudcli-1.34.0.tgz /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz

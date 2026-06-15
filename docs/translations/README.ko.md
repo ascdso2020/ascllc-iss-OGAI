@@ -22,7 +22,7 @@
 
 ### 설정은 그만. 이제 만들기 시작하세요.
 
-명령어 하나. 완전한 AI 개발 워크스테이션. Claude Code, 웹 UI, 헤드리스 브라우저, 7개의 AI CLI, 50개 이상의 개발 도구 — 컨테이너화되어 바로 사용 가능.
+명령어 하나. 완전한 AI 개발 워크스테이션. Claude Code, 웹 UI, 헤드리스 브라우저, 8개의 AI CLI, 50개 이상의 개발 도구 — 컨테이너화되어 바로 사용 가능.
 
 **수동으로 설정하는 데 2시간을 쓸 뻔했죠. 아니면 그냥 `docker compose up`을 실행하면 됩니다.**
 
@@ -163,7 +163,7 @@ http://localhost:3001
 | **Claude Code** | 사전 설치, 사전 설정, 바로 사용 | 설치, 설정, 인스톨러 멈춤 디버깅, WORKDIR 수정 |
 | **웹 UI** | CloudCLI 플러그인 포함 | 웹 UI 찾기, 설치, 설정, Claude에 연결 |
 | **헤드리스 브라우저** | Chromium + Xvfb + Playwright, 설정 완료 | Chromium 설치, Xvfb 설치, 디스플레이 :99 설정, shm 수정, sandbox 수정, seccomp 수정... |
-| **AI CLI** | 7개 제공자, 하나의 컨테이너 | 3개의 패키지 매니저로 각각 설치 |
+| **AI CLI** | 8개 제공자, 하나의 컨테이너 | 3개의 패키지 매니저로 각각 설치 |
 | **개발 도구** | 50개 이상 도구, 바로 사용 | 한 시간 동안 `apt-get install` / `npm i -g` / `pip install` |
 | **프로세스 관리** | s6-overlay (자동 재시작, 정상 종료) | supervisord 설정 직접 작성 또는 Docker restart 믿기 |
 | **영속성** | 바인드 마운트, 자격 증명 영구 보존 | Docker 볼륨 파악, "왜 파일이 아닌 디렉터리인가" 디버깅 |
@@ -207,6 +207,7 @@ HolyClaude는 Anthropic의 **공식 Claude Code CLI**를 실행합니다. 기존
 | TaskMaster AI | AI 제공자 키 사용 (Anthropic, OpenAI 등) |
 | Junie | JetBrains 계정 (JetBrains AI 구독) |
 | OpenCode | `opencode` TUI로 설정 (여러 제공자 지원) |
+| Pi Coding Agent | `pi`로 설정 (여러 제공자 지원) |
 
 > **HolyClaude는 무료 오픈 소스입니다.** AI 제공자에게만 사용량에 따라 지불하면 되며, 이미 그렇게 하고 있는 것과 동일합니다. 자격 증명을 프록시하거나 가로채거나 건드리지 않습니다. 로컬 바인드 마운트에 저장됩니다.
 
@@ -436,7 +437,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **User mapping** | 컨테이너와 호스트 간 파일 권한 | "permission denied" 발생 시 (호스트에서 `id -u` 및 `id -g` 실행) |
 | **SMB/CIFS** | 파일 감시자 폴링 모드 | 볼륨이 NAS 또는 네트워크 공유에 있을 때만 |
 | **Notifications** | Apprise를 통한 푸시 알림 (Discord, Telegram, Slack, Email, 100개 이상 서비스) | 자리를 비우면서 Claude 작업 완료를 알고 싶을 때 |
-| **AI providers** | Gemini, Codex, Cursor, Junie, OpenCode용 API 키 | Claude 외의 AI CLI를 사용하고 싶을 때 |
+| **AI providers** | Gemini, Codex, Cursor, Junie, OpenCode, Pi Coding Agent용 API 키 | Claude 외의 AI CLI를 사용하고 싶을 때 |
 
 > **모든 환경 변수는 선택 사항입니다.** 컨테이너는 `TZ=UTC`만으로도 완벽하게 실행됩니다. 나머지는 합리적인 기본값이 있거나 웹 UI를 통해 처리됩니다.
 
@@ -552,8 +553,9 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **TaskMaster AI** | `task-master` | 작업 계획 및 오케스트레이션 |
 | **Junie** | `junie` | JetBrains의 AI 코딩 에이전트 |
 | **OpenCode** | `opencode` | 오픈 소스 AI 에이전트 (여러 제공자) |
+| **Pi Coding Agent** | `pi` | 미니멀 에이전트 하네스 (여러 제공자) |
 
-7개의 AI CLI. 하나의 컨테이너. `Tab` 하나면 바로 전환. 다른 Docker 이미지는 이것을 제공하지 않습니다.
+8개의 AI CLI. 하나의 컨테이너. `Tab` 하나면 바로 전환. 다른 Docker 이미지는 이것을 제공하지 않습니다.
 
 </details>
 
@@ -614,7 +616,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 
 ## :robot: AI CLI Providers
 
-7개의 AI CLI. 하나의 컨테이너. 다른 Docker 이미지는 이것을 제공하지 않습니다.
+8개의 AI CLI. 하나의 컨테이너. 다른 Docker 이미지는 이것을 제공하지 않습니다.
 
 | 제공자 | 명령어 | 인증 방법 | 구독 사용 가능? |
 |----------|---------|--------------------|--------------------|
@@ -625,6 +627,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | **TaskMaster AI** | `task-master` | 기존 AI 제공자 키 사용 | 설정된 키로 작동 |
 | **Junie** | `junie` | JetBrains AI 구독 | JetBrains 계정 필요 |
 | **OpenCode** | `opencode` | TUI로 설정 | 여러 제공자 지원 |
+| **Pi Coding Agent** | `pi` | Pi로 설정 | 여러 제공자 지원 |
 
 > Claude Code가 기본 CLI입니다. 나머지는 두 번째 의견이 필요할 때, 특정 모델의 강점을 활용할 때, 또는 출력을 비교할 때 사용합니다. `Tab` 하나면 모두 사용 가능하다는 것이 핵심입니다.
 

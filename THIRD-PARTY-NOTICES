@@ -60,5 +60,12 @@ for their source and license files.
 - Source: https://github.com/nodejs/node
 - Version: 26.3.0 base image
 
+## Pi Coding Agent (@earendil-works/pi-coding-agent)
+
+- License: MIT
+- Source: https://github.com/earendil-works/pi
+- npm: https://www.npmjs.com/package/@earendil-works/pi-coding-agent
+- Version: 0.79.3, installed in the full image only
+
 For a complete list of installed packages and their licenses, inspect the
 Docker image directly or refer to the Dockerfile.

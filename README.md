@@ -22,7 +22,7 @@
 
 ### Stop configuring. Start building.
 
-One command. Full AI development workstation. Claude Code, web UI, headless browser, 7 AI CLIs, 50+ dev tools — containerized and ready.
+One command. Full AI development workstation. Claude Code, web UI, headless browser, 8 AI CLIs, 50+ dev tools — containerized and ready.
 
 **You were going to spend 2 hours setting this up manually. Or you could just `docker compose up`.**
 
@@ -163,7 +163,7 @@ So I made a container that does all of it. And then I hit every possible bug so 
 | **Claude Code** | Pre-installed, pre-configured, ready | Install, configure, debug installer hanging, fix WORKDIR |
 | **Web UI** | CloudCLI included with plugins | Find a web UI, install it, configure it, wire it to Claude |
 | **Headless browser** | Chromium + Xvfb + Playwright, configured | Install Chromium, install Xvfb, configure display :99, fix shm, fix sandbox, fix seccomp... |
-| **AI CLIs** | 7 providers, one container | Install each one separately across 3 package managers |
+| **AI CLIs** | 8 providers, one container | Install each one separately across 3 package managers |
 | **Dev tools** | 50+ tools, ready | `apt-get install` / `npm i -g` / `pip install` for the next hour |
 | **Process management** | s6-overlay (auto-restart, graceful shutdown) | Write your own supervisord config or hope Docker restart works |
 | **Persistence** | Bind mounts, credentials survive everything | Figure out Docker volumes, debug "why is this a directory not a file" |
@@ -207,6 +207,7 @@ HolyClaude runs the **official Claude Code CLI** from Anthropic. Your existing a
 | TaskMaster AI | Uses your AI provider keys (Anthropic, OpenAI, etc.) |
 | Junie | JetBrains account (JetBrains AI subscription) |
 | OpenCode | Configure via `opencode` TUI (supports multiple providers) |
+| Pi Coding Agent | Configure through `pi` (supports multiple providers) |
 
 > **HolyClaude is free and open source.** You only pay your AI providers for usage, same as you already do. We don't proxy, intercept, or touch your credentials. They live in your local bind mount.
 
@@ -562,7 +563,7 @@ This is not a minimal container. This is an entire development workstation.
 | **Cursor** | `cursor` | Cursor's AI agent |
 | **TaskMaster AI** | `task-master` | Task planning and orchestration |
 
-Five AI CLIs ship in both full and slim. The full image adds Junie and OpenCode below, for seven AI CLIs total.
+Five AI CLIs ship in both full and slim. The full image adds Junie, OpenCode, and Pi below, for eight AI CLIs total.
 
 </details>
 
@@ -577,6 +578,7 @@ The full image includes everything above, plus:
 |-----|---------|---------------|
 | **Junie** | `junie` | JetBrains' AI coding agent |
 | **OpenCode** | `opencode` | Open source AI agent (multiple providers) |
+| **Pi Coding Agent** | `pi` | Minimal agent harness (multiple providers) |
 
 </details>
 
@@ -633,7 +635,7 @@ The full image includes everything above, plus:
 
 ## :robot: AI CLI Providers
 
-The full image ships seven AI CLIs. The slim image ships the five core CLIs.
+The full image ships eight AI CLIs. The slim image ships the five core CLIs.
 
 | Provider | Command | How to authenticate | Subscription works? |
 |----------|---------|--------------------|--------------------|
@@ -644,6 +646,7 @@ The full image ships seven AI CLIs. The slim image ships the five core CLIs.
 | **TaskMaster AI** | `task-master` | Uses existing AI provider keys | Works with configured keys |
 | **Junie** | `junie` | JetBrains AI subscription | JetBrains account required, full image only |
 | **OpenCode** | `opencode` | Configure via TUI | Supports multiple providers, full image only |
+| **Pi Coding Agent** | `pi` | Configure through Pi | Supports multiple providers, full image only |
 
 > Claude Code is the primary CLI. The others are there because sometimes you want a second opinion, or a specific model's strengths, or you're comparing outputs. Having all of them one `Tab` away is the whole point.
 

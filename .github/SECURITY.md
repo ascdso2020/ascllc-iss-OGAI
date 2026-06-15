@@ -27,6 +27,8 @@ The default `acceptEdits` mode is right for most users. `bypassPermissions` is d
 
 Codex support uses configurable near-parity modes, not identical security. `HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE` controls CloudCLI Codex chat at runtime, while `HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE` only seeds a new raw `codex` CLI `~/.codex/config.toml` on first boot. Valid values are `default`, `acceptEdits`, and `bypassPermissions`; `acceptEdits` is recommended.
 
+Pi Coding Agent runs with the same container user permissions as the `pi` process that launches it. HolyClaude does not add a separate Pi permission gate, so use it in trusted workspaces and keep the container boundary in mind.
+
 Do not expose CloudCLI directly to the public internet, especially with any bypass mode enabled. Docker limits access to the container and mounted volumes, but CloudCLI still exposes an interactive coding environment with credentials and mounted workspace files.
 
 ## CloudCLI Runtime
@@ -40,7 +42,7 @@ The vendored CloudCLI version must stay at or above the fixes for:
 | `CVE-2026-31862` / `GHSA-f2fc-vc88-6w7q` | Authenticated command injection in Git-related endpoints | `1.24.0` |
 | `CVE-2026-31975` / `GHSA-gv8f-wpm2-m5wr` | WebSocket auth/JWT weakness with shell injection risk | `1.25.0` |
 
-HolyClaude v1.2.8 vendors CloudCLI `1.34.0`.
+HolyClaude v1.2.9 vendors CloudCLI `1.34.0`.
 
 ## Credential Storage
 

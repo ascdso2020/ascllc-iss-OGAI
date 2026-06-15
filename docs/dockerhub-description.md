@@ -2,7 +2,7 @@
 
 **One command. Full AI development workstation.**
 
-Claude Code, CloudCLI web UI, headless browser, 7 AI CLIs, 50+ dev tools — containerized and ready. You were going to spend 2 hours setting this up manually. Or you could just `docker compose up`.
+Claude Code, CloudCLI web UI, headless browser, 8 AI CLIs, 50+ dev tools — containerized and ready. You were going to spend 2 hours setting this up manually. Or you could just `docker compose up`.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/coderluii/holyclaude?style=flat-square&logo=docker)](https://hub.docker.com/r/coderluii/holyclaude)
 [![GitHub Stars](https://img.shields.io/github/stars/coderluii/holyclaude?style=flat-square&logo=github)](https://github.com/CoderLuii/HolyClaude)
@@ -40,7 +40,7 @@ That's it. Open your browser, sign in, start building.
 
 ## What's Inside
 
-🤖 **7 AI CLIs** — Claude Code, Gemini CLI, OpenAI Codex, Cursor, TaskMaster AI, Junie, OpenCode
+🤖 **8 AI CLIs** — Claude Code, Gemini CLI, OpenAI Codex, Cursor, TaskMaster AI, Junie, OpenCode, Pi Coding Agent
 
 🌐 **CloudCLI Web UI** — Access your AI coding agents from your Docker host at `127.0.0.1:3001`
 

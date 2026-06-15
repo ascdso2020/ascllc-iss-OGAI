@@ -22,7 +22,7 @@
 
 ### Arrêtez de configurer. Commencez à construire.
 
-Une commande. Un poste de travail IA complet. Claude Code, interface web, navigateur headless, 7 CLI IA, 50+ outils de développement — containerisé et prêt à l'emploi.
+Une commande. Un poste de travail IA complet. Claude Code, interface web, navigateur headless, 8 CLI IA, 50+ outils de développement — containerisé et prêt à l'emploi.
 
 **Vous alliez passer 2 heures à tout installer manuellement. Ou vous pouvez simplement faire `docker compose up`.**
 
@@ -163,7 +163,7 @@ Alors j'ai créé un conteneur qui fait tout ça. Et ensuite j'ai rencontré tou
 | **Claude Code** | Pré-installé, pré-configuré, prêt | Installer, configurer, déboguer le blocage de l'installateur, corriger WORKDIR |
 | **Interface web** | CloudCLI inclus avec plugins | Trouver une interface web, l'installer, la configurer, la connecter à Claude |
 | **Navigateur headless** | Chromium + Xvfb + Playwright, configuré | Installer Chromium, installer Xvfb, configurer l'affichage :99, corriger shm, corriger sandbox, corriger seccomp... |
-| **CLI IA** | 7 fournisseurs, un seul conteneur | Installer chacun séparément via 3 gestionnaires de paquets |
+| **CLI IA** | 8 fournisseurs, un seul conteneur | Installer chacun séparément via 3 gestionnaires de paquets |
 | **Outils de dev** | 50+ outils, prêts | `apt-get install` / `npm i -g` / `pip install` pendant une heure |
 | **Gestion des processus** | s6-overlay (redémarrage auto, arrêt propre) | Écrire votre propre config supervisord ou espérer que le restart Docker fonctionne |
 | **Persistance** | Bind mounts, les identifiants survivent à tout | Comprendre les volumes Docker, déboguer "pourquoi c'est un répertoire et pas un fichier" |
@@ -207,6 +207,7 @@ HolyClaude exécute le **Claude Code CLI officiel** d'Anthropic. Votre compte ex
 | TaskMaster AI | Utilise vos clés de fournisseur IA (Anthropic, OpenAI, etc.) |
 | Junie | Compte JetBrains (abonnement JetBrains AI) |
 | OpenCode | Configurer via le TUI `opencode` (supporte plusieurs fournisseurs) |
+| Pi Coding Agent | Configurer via `pi` (supporte plusieurs fournisseurs) |
 
 > **HolyClaude est gratuit et open source.** Vous ne payez vos fournisseurs IA que pour l'usage, comme vous le faites déjà. Nous ne proxifions pas, n'interceptons pas et ne touchons pas à vos identifiants. Ils vivent dans votre bind mount local.
 
@@ -436,7 +437,7 @@ Ces valeurs sont lues par Docker Compose sur l'hôte. Ce ne sont pas des variabl
 | **User mapping** | Permissions de fichiers entre conteneur et hôte | Si vous obtenez "permission denied" (`id -u` et `id -g` sur votre hôte) |
 | **SMB/CIFS** | Mode de surveillance des fichiers par polling | Seulement si vos volumes sont sur un NAS ou un partage réseau |
 | **Notifications** | Alertes push via Apprise (Discord, Telegram, Slack, Email, 100+ services) | Si vous voulez vous éloigner et savoir quand Claude a terminé |
-| **AI providers** | Clés API pour Gemini, Codex, Cursor, Junie, OpenCode | Si vous voulez utiliser des CLI IA autres que Claude |
+| **AI providers** | Clés API pour Gemini, Codex, Cursor, Junie, OpenCode, Pi Coding Agent | Si vous voulez utiliser des CLI IA autres que Claude |
 
 > **Chaque variable d'environnement est optionnelle.** Le conteneur fonctionne parfaitement avec juste `TZ=UTC`. Tout le reste a des valeurs par défaut sensées ou est géré via l'interface web.
 
@@ -552,8 +553,9 @@ Ce n'est pas un conteneur minimal. C'est un poste de travail de développement c
 | **TaskMaster AI** | `task-master` | Planification de tâches et orchestration |
 | **Junie** | `junie` | Agent de codage IA de JetBrains |
 | **OpenCode** | `opencode` | Agent IA open source (plusieurs fournisseurs) |
+| **Pi Coding Agent** | `pi` | Harnais agent minimal (plusieurs fournisseurs) |
 
-Sept CLI IA. Un seul conteneur. Passez de l'un à l'autre instantanément. Aucune autre image Docker ne fait ça.
+Huit CLI IA. Un seul conteneur. Passez de l'un à l'autre instantanément. Aucune autre image Docker ne fait ça.
 
 </details>
 
@@ -614,7 +616,7 @@ L'image complète inclut tout ce qui précède, plus :
 
 ## :robot: Fournisseurs de CLI IA
 
-Sept CLI IA. Un seul conteneur. Aucune autre image Docker ne vous donne ça.
+Huit CLI IA. Un seul conteneur. Aucune autre image Docker ne vous donne ça.
 
 | Fournisseur | Commande | Comment s'authentifier | Abonnement fonctionne ? |
 |----------|---------|--------------------|--------------------|
@@ -625,6 +627,7 @@ Sept CLI IA. Un seul conteneur. Aucune autre image Docker ne vous donne ça.
 | **TaskMaster AI** | `task-master` | Utilise les clés de fournisseur IA existantes | Fonctionne avec les clés configurées |
 | **Junie** | `junie` | Abonnement JetBrains AI | Compte JetBrains requis |
 | **OpenCode** | `opencode` | Configurer via TUI | Supporte plusieurs fournisseurs |
+| **Pi Coding Agent** | `pi` | Configurer via Pi | Supporte plusieurs fournisseurs |
 
 > Claude Code est le CLI principal. Les autres sont là parce que vous voulez parfois un deuxième avis, ou les points forts d'un modèle spécifique, ou que vous comparez des sorties. Les avoir tous à un `Tab` de distance, c'est tout l'intérêt.
 

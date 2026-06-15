@@ -4,6 +4,18 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.9] - 06/14/2026
+
+### Added
+- Added Pi Coding Agent `0.79.3` to the full image as the `pi` command.
+
+### Changed
+- Updated README, Docker Hub, translations, memory template, and notices so the full image lists eight AI CLIs.
+
+### Fixed
+- Restored the documented `cursor` command when the current Cursor Agent installer only creates `agent` and `cursor-agent`.
+- Enforced LF endings for Docker runtime scripts so Windows checkouts build runnable containers.
+
 ## [1.2.8] - 06/14/2026
 
 ### Changed
