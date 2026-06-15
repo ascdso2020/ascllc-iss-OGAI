@@ -398,7 +398,7 @@ services:
       # inside the container: touch ~/.claude/notify-on
       #
       # - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-      # - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+      # - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
       # - NOTIFY_PUSHOVER=pover://user_key@app_token
       # - NOTIFY_SLACK=slack://token_a/token_b/token_c
       # - NOTIFY_EMAIL=mailto://user:pass@gmail.com?to=you@gmail.com
@@ -955,9 +955,16 @@ Walk away from your computer and know when a task is done. Claude Code hooks, ra
 1. Add one or more `NOTIFY_*` variables to your compose `environment`:
    ```yaml
    - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-   - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+   - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
    ```
 2. Inside the container: `touch ~/.claude/notify-on`
+
+Telegram uses Apprise's `tgram://` scheme. Legacy Telegram values are still accepted, but new setups should use `tgram://`.
+
+Test the setup without sending a message:
+```bash
+docker compose exec holyclaude /usr/local/bin/notify.py test --dry-run --debug
+```
 
 See [configuration docs](docs/configuration.md#notifications-apprise) for all supported variables and URL formats.
 

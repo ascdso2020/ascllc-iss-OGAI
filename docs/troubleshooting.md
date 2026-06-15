@@ -55,6 +55,29 @@ Note: Polling uses more CPU than inotify. Only enable when needed.
 
 ---
 
+### Telegram notifications do not arrive
+
+**Symptom:** `notify-on` exists and `NOTIFY_TELEGRAM` is set, but no Telegram message arrives.
+
+**Cause:** Telegram uses Apprise's `tgram://` URL scheme. Older HolyClaude docs showed a shorter Telegram scheme that Apprise rejects.
+
+**Fix:** Use the current Telegram format:
+```yaml
+environment:
+  - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
+```
+
+Legacy Telegram values are normalized for compatibility, but `tgram://` is the supported format for new setups.
+
+Check the setup without sending a message:
+```bash
+docker compose exec holyclaude /usr/local/bin/notify.py test --dry-run --debug
+```
+
+If the dry run passes but Telegram still does not receive the real test, run the same command without `--dry-run`, then check the bot token, chat ID, and container network access.
+
+---
+
 ### Permission denied errors
 
 **Symptom:** Can't write files, `git` operations fail, npm install fails.

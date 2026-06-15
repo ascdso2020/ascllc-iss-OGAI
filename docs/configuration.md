@@ -68,7 +68,7 @@ Claude Code hooks, raw CLI hooks for Codex and Gemini CLI, and CloudCLI Codex ch
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `NOTIFY_DISCORD` | *(unset)* | Discord webhook — `discord://webhook_id/webhook_token` |
-| `NOTIFY_TELEGRAM` | *(unset)* | Telegram bot — `tg://bot_token/chat_id` |
+| `NOTIFY_TELEGRAM` | *(unset)* | Telegram bot — `tgram://bot_token/chat_id` |
 | `NOTIFY_PUSHOVER` | *(unset)* | Pushover — `pover://user_key@app_token` |
 | `NOTIFY_SLACK` | *(unset)* | Slack webhook — `slack://token_a/token_b/token_c` |
 | `NOTIFY_EMAIL` | *(unset)* | Email (SMTP) — `mailto://user:pass@gmail.com?to=you@gmail.com` |
@@ -76,6 +76,13 @@ Claude Code hooks, raw CLI hooks for Codex and Gemini CLI, and CloudCLI Codex ch
 | `NOTIFY_URLS` | *(unset)* | Catch-all — comma-separated [Apprise URLs](https://github.com/caronc/apprise/wiki) |
 
 Notifications also require the flag file `~/.claude/notify-on` to exist inside the container. Create it with `touch ~/.claude/notify-on`.
+
+Telegram uses Apprise's `tgram://` scheme. Legacy Telegram values are normalized for compatibility, but new setups should use `tgram://`.
+
+Validate notification setup without sending a message:
+```bash
+docker compose exec holyclaude /usr/local/bin/notify.py test --dry-run --debug
+```
 
 **Migrating from Pushover (v1.0.0):** Replace `PUSHOVER_APP_TOKEN` and `PUSHOVER_USER_KEY` with a single variable: `NOTIFY_PUSHOVER=pover://user_key@app_token`
 

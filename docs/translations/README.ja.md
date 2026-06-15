@@ -397,7 +397,7 @@ services:
       # inside the container: touch ~/.claude/notify-on
       #
       # - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-      # - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+      # - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
       # - NOTIFY_PUSHOVER=pover://user_key@app_token
       # - NOTIFY_SLACK=slack://token_a/token_b/token_c
       # - NOTIFY_EMAIL=mailto://user:pass@gmail.com?to=you@gmail.com
@@ -907,7 +907,7 @@ HolyClaude は CloudCLI をポート `3001` にバインドする。デフォル
 1. compose の `environment` に `NOTIFY_*` 変数を一つ以上追加:
    ```yaml
    - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-   - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+   - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
    ```
 2. コンテナ内で: `touch ~/.claude/notify-on`
 

@@ -83,7 +83,7 @@ Credentials stored locally in your bind-mounted `./data/claude` directory. We do
 | `PGID` | Container user GID | `1000` |
 | `CHOKIDAR_USEPOLLING` | Enable polling for NAS/SMB mounts | unset |
 | `NOTIFY_DISCORD` | Discord webhook URL for notifications | unset |
-| `NOTIFY_TELEGRAM` | Telegram bot URL for notifications | unset |
+| `NOTIFY_TELEGRAM` | Telegram bot URL (`tgram://bot_token/chat_id`) | unset |
 | `NOTIFY_PUSHOVER` | Pushover URL for notifications | unset |
 | `NOTIFY_SLACK` | Slack webhook URL for notifications | unset |
 | `NOTIFY_URLS` | Catch-all Apprise notification URLs | unset |

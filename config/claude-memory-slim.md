@@ -172,6 +172,8 @@ Optional push notifications via [Apprise](https://github.com/caronc/apprise) —
 1. Set one or more `NOTIFY_*` environment variables (e.g. `NOTIFY_DISCORD`, `NOTIFY_TELEGRAM`, `NOTIFY_PUSHOVER`)
 2. Create the flag file: `touch ~/.claude/notify-on`
 
+Telegram uses `NOTIFY_TELEGRAM=tgram://bot_token/chat_id`. Check setup without sending: `/usr/local/bin/notify.py test --dry-run --debug`.
+
 **To disable:** `rm ~/.claude/notify-on`
 
 ## Workspace

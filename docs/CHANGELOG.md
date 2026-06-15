@@ -4,6 +4,13 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] - 06/15/2026
+
+### Fixed
+- Corrected Telegram notification examples to use Apprise's `tgram://bot_token/chat_id` scheme and kept legacy `tg://` values working at runtime.
+- Added a dry-run notification diagnostic so users can check `notify-on`, `NOTIFY_*` variables, and Apprise URL acceptance without sending a message.
+- Kept Docker release metadata from auto-adding `latest` to slim builds, so `latest` stays tied to the full image.
+
 ## [1.3.2] - 06/15/2026
 
 ### Changed

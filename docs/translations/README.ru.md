@@ -397,7 +397,7 @@ services:
       # inside the container: touch ~/.claude/notify-on
       #
       # - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-      # - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+      # - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
       # - NOTIFY_PUSHOVER=pover://user_key@app_token
       # - NOTIFY_SLACK=slack://token_a/token_b/token_c
       # - NOTIFY_EMAIL=mailto://user:pass@gmail.com?to=you@gmail.com
@@ -907,7 +907,7 @@ HolyClaude привязывает CloudCLI к порту `3001`. По умолч
 1. Добавьте одну или несколько переменных `NOTIFY_*` в раздел `environment` вашего compose:
    ```yaml
    - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-   - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+   - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
    ```
 2. Внутри контейнера: `touch ~/.claude/notify-on`
 

@@ -19,6 +19,7 @@ workspace/
 .omc/
 evidence/
 .evidence/
+tests/
 
 # Environment and credentials
 .env

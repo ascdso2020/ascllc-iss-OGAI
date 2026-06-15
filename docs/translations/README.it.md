@@ -397,7 +397,7 @@ services:
       # inside the container: touch ~/.claude/notify-on
       #
       # - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-      # - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+      # - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
       # - NOTIFY_PUSHOVER=pover://user_key@app_token
       # - NOTIFY_SLACK=slack://token_a/token_b/token_c
       # - NOTIFY_EMAIL=mailto://user:pass@gmail.com?to=you@gmail.com
@@ -907,7 +907,7 @@ Allontanati dal computer e sappi quando Claude ha finito. Usa [Apprise](https://
 1. Aggiungi una o più variabili `NOTIFY_*` all'`environment` del tuo compose:
    ```yaml
    - NOTIFY_DISCORD=discord://webhook_id/webhook_token
-   - NOTIFY_TELEGRAM=tg://bot_token/chat_id
+   - NOTIFY_TELEGRAM=tgram://bot_token/chat_id
    ```
 2. All'interno del container: `touch ~/.claude/notify-on`
 

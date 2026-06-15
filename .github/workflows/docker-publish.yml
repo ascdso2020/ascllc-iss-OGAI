@@ -70,6 +70,8 @@ jobs:
           images: |
             ${{ env.DOCKERHUB_IMAGE }}
             ${{ env.GHCR_IMAGE }}
+          flavor: |
+            latest=false
           tags: |
             type=raw,value=latest,enable=${{ matrix.variant == 'full' }}
             type=raw,value=slim,enable=${{ matrix.variant == 'slim' }}
