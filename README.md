@@ -15,7 +15,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/CoderLuii?style=social)](https://x.com/CoderLuii)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=PM2UXGVSTHDNL)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/CoderLuii)
-[![Website](https://img.shields.io/badge/website-coderluii.dev-orange?logo=astro)](https://coderluii.dev)
+[![Website](https://img.shields.io/badge/website-holyclaude.coderluii.dev-orange?logo=astro)](https://holyclaude.coderluii.dev)
 [![GitHub Release](https://img.shields.io/github/v/release/CoderLuii/HolyClaude?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/CoderLuii/HolyClaude/releases)
 [![Issues](https://img.shields.io/github/issues/CoderLuii/HolyClaude?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/issues)
 [![Contributors](https://img.shields.io/github/contributors/CoderLuii/HolyClaude?color=c4f042&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/graphs/contributors)
@@ -235,8 +235,8 @@ Two flavors. Same quality. Pick your weight class.
 
 | Tag | What you get | Best for | Docker Hub compressed size |
 |-----|-------------|----------|----------------------------|
-| **`latest`** | Everything pre-installed — every tool, every library, every CLI | Most users. Zero wait time. Claude never has to stop and install something. | ~4.0 GiB |
-| **`slim`** | Core tools only — Claude installs extras on-demand | Smaller VPS, limited disk, metered bandwidth | ~2.1 GiB |
+| **`latest`** | Everything pre-installed — every tool, every library, every CLI | Most users. Zero wait time. Claude never has to stop and install something. | ~4.1 GB |
+| **`slim`** | Core tools only — Claude installs extras on-demand | Smaller VPS, limited disk, metered bandwidth | ~2.4 GB |
 | `X.Y.Z` | Full image, pinned version | Production stability — you control when to update | Same as `latest` for that release |
 | `X.Y.Z-slim` | Slim image, pinned version | Production + small footprint | Same as `slim` for that release |
 
@@ -1018,7 +1018,7 @@ docker compose pull && docker compose up -d
 To pin a specific version instead of `latest`:
 
 ```yaml
-image: coderluii/holyclaude:1.1.2   # instead of :latest
+image: coderluii/holyclaude:1.3.7   # instead of :latest
 ```
 
 <p align="right">
@@ -1189,7 +1189,7 @@ How does HolyClaude compare to other approaches?
 
 | Approach | Web UI | Multi-AI | Pre-configured tools | Headless browser | One command setup | Persistence |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLIs | 50+ tools | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
+| **HolyClaude** | CloudCLI | 8 CLIs | 50+ tools | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
 | Claude Code (bare metal) | No | No | Install yourself | Install yourself | Multi-step install | Manual |
 | Claude Code + oh-my-openagent | No | Yes (multi-model) | Some | No | npm install | Manual |
 | DIY Docker + Claude Code | Maybe | Maybe | Whatever you add | If you configure it | If you write the Dockerfile | If you set up volumes |
@@ -1293,7 +1293,7 @@ The HolyClaude Docker image includes third-party software, each under its own li
 
 | Component | License | Source |
 |-----------|---------|--------|
-| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [CloudCLI](https://cloudcli.ai), [npm package](https://www.npmjs.com/package/@cloudcli-ai/cloudcli) |
 | Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
@@ -1331,7 +1331,7 @@ MIT — see [LICENSE](LICENSE). Use it however you want.
 
 <div align="center">
 
-Built by [CoderLuii](https://github.com/coderluii) · [coderluii.dev](https://coderluii.dev)
+Built by [CoderLuii](https://github.com/coderluii) · [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 This container is what I use every day. If it saves you even half the setup time it saved me, a star would be nice.
 

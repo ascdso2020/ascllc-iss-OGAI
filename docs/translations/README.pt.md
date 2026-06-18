@@ -15,7 +15,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/CoderLuii?style=social)](https://x.com/CoderLuii)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=PM2UXGVSTHDNL)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/CoderLuii)
-[![Website](https://img.shields.io/badge/website-coderluii.dev-orange?logo=astro)](https://coderluii.dev)
+[![Website](https://img.shields.io/badge/website-holyclaude.coderluii.dev-orange?logo=astro)](https://holyclaude.coderluii.dev)
 [![GitHub Release](https://img.shields.io/github/v/release/CoderLuii/HolyClaude?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/CoderLuii/HolyClaude/releases)
 [![Issues](https://img.shields.io/github/issues/CoderLuii/HolyClaude?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/issues)
 [![Contributors](https://img.shields.io/github/contributors/CoderLuii/HolyClaude?color=c4f042&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/graphs/contributors)
@@ -239,7 +239,7 @@ docker pull coderluii/holyclaude:slim
 
 > **`latest` é sempre a imagem completa.** Usuários slim: não se preocupe, quando você pede ao Claude para fazer algo que precisa de uma ferramenta ausente, ele instala em segundos. Você tem as mesmas capacidades, apenas com um download inicial menor.
 >
-> O Docker Hub mostra o tamanho comprimido de transferência: `latest` fica em torno de 4,0 GiB e `slim` em torno de 2,1 GiB. Docker, Synology Container Manager e filesystems de NAS podem mostrar um tamanho maior depois que as camadas são extraídas.
+> O Docker Hub mostra o tamanho comprimido de transferência: `latest` fica em torno de 4,1 GB e `slim` em torno de 2,4 GB. Docker, Synology Container Manager e filesystems de NAS podem mostrar um tamanho maior depois que as camadas são extraídas.
 
 <p align="right">
   <a href="#top">↑ voltar ao topo</a>
@@ -948,7 +948,7 @@ Não execute `cloudcli update` nem `npm install -g @cloudcli-ai/cloudcli@latest`
 Para fixar uma versão específica em vez de `latest`:
 
 ```yaml
-image: coderluii/holyclaude:1.1.2   # instead of :latest
+image: coderluii/holyclaude:1.3.7   # instead of :latest
 ```
 
 <p align="right">
@@ -1081,7 +1081,7 @@ Como o HolyClaude se compara a outras abordagens?
 
 | Abordagem | Interface Web | Multi-IA | Ferramentas pré-configuradas | Navegador headless | Setup com um comando | Persistência |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLIs | Mais de 50 ferramentas | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
+| **HolyClaude** | CloudCLI | 8 CLIs | Mais de 50 ferramentas | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
 | Claude Code (metal puro) | Não | Não | Instale você mesmo | Instale você mesmo | Instalação multi-etapa | Manual |
 | Claude Code + oh-my-openagent | Não | Sim (multi-modelo) | Alguns | Não | npm install | Manual |
 | DIY Docker + Claude Code | Talvez | Talvez | O que você adicionar | Se você configurar | Se você escrever o Dockerfile | Se você configurar volumes |
@@ -1185,7 +1185,7 @@ A imagem Docker do HolyClaude inclui software de terceiros, cada um sob sua pró
 
 | Componente | Licença | Fonte |
 |-----------|---------|--------|
-| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [CloudCLI](https://cloudcli.ai), [npm package](https://www.npmjs.com/package/@cloudcli-ai/cloudcli) |
 | Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
@@ -1223,7 +1223,7 @@ MIT — veja [LICENSE](LICENSE). Use como quiser.
 
 <div align="center">
 
-Construído por [CoderLuii](https://github.com/coderluii) · [coderluii.dev](https://coderluii.dev)
+Construído por [CoderLuii](https://github.com/coderluii) · [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 Este container é o que uso todos os dias. Se ele te economizou ao menos metade do tempo de configuração que me economizou, uma estrela seria ótima.
 

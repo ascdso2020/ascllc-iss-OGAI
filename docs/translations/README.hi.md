@@ -15,7 +15,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/CoderLuii?style=social)](https://x.com/CoderLuii)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=PM2UXGVSTHDNL)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/CoderLuii)
-[![Website](https://img.shields.io/badge/website-coderluii.dev-orange?logo=astro)](https://coderluii.dev)
+[![Website](https://img.shields.io/badge/website-holyclaude.coderluii.dev-orange?logo=astro)](https://holyclaude.coderluii.dev)
 [![GitHub Release](https://img.shields.io/github/v/release/CoderLuii/HolyClaude?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/CoderLuii/HolyClaude/releases)
 [![Issues](https://img.shields.io/github/issues/CoderLuii/HolyClaude?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/issues)
 [![Contributors](https://img.shields.io/github/contributors/CoderLuii/HolyClaude?color=c4f042&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/graphs/contributors)
@@ -239,7 +239,7 @@ docker pull coderluii/holyclaude:slim
 
 > **`latest` हमेशा पूर्ण इमेज है।** Slim उपयोगकर्ता: चिंता न करें — जब आप Claude से कुछ ऐसा करवाते हैं जिसके लिए कोई missing टूल चाहिए, तो वह सेकंडों में इंस्टॉल हो जाता है। आपको वही क्षमताएं मिलती हैं, बस छोटा initial download।
 >
-> Docker Hub compressed download size दिखाता है: `latest` लगभग 4.0 GiB और `slim` लगभग 2.1 GiB है। Docker, Synology Container Manager, और NAS filesystem layers extract होने के बाद बड़ा unpacked size दिखा सकते हैं।
+> Docker Hub compressed download size दिखाता है: `latest` लगभग 4.1 GB और `slim` लगभग 2.4 GB है। Docker, Synology Container Manager, और NAS filesystem layers extract होने के बाद बड़ा unpacked size दिखा सकते हैं।
 
 <p align="right">
   <a href="#top">↑ शीर्ष पर वापस जाएं</a>
@@ -948,7 +948,7 @@ Container के अंदर `cloudcli update` या `npm install -g @cloudcli
 `latest` के बजाय specific version pin करने के लिए:
 
 ```yaml
-image: coderluii/holyclaude:1.1.2   # instead of :latest
+image: coderluii/holyclaude:1.3.7   # instead of :latest
 ```
 
 <p align="right">
@@ -1081,7 +1081,7 @@ HolyClaude अन्य approaches से कैसे compare करता ह�
 
 | Approach | Web UI | Multi-AI | Pre-configured tools | Headless browser | One command setup | Persistence |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLIs | 50+ tools | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
+| **HolyClaude** | CloudCLI | 8 CLIs | 50+ tools | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
 | Claude Code (bare metal) | नहीं | नहीं | खुद install करें | खुद install करें | Multi-step install | Manual |
 | Claude Code + oh-my-openagent | नहीं | हां (multi-model) | कुछ | नहीं | npm install | Manual |
 | DIY Docker + Claude Code | शायद | शायद | जो आप add करें | अगर आप configure करें | अगर आप Dockerfile लिखें | अगर आप volumes set up करें |
@@ -1185,7 +1185,7 @@ HolyClaude Docker image में third-party software शामिल है, �
 
 | Component | License | Source |
 |-----------|---------|--------|
-| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [CloudCLI](https://cloudcli.ai), [npm package](https://www.npmjs.com/package/@cloudcli-ai/cloudcli) |
 | Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
@@ -1223,7 +1223,7 @@ MIT — [LICENSE](LICENSE) देखें। इसे जैसे चाह�
 
 <div align="center">
 
-[CoderLuii](https://github.com/coderluii) द्वारा बनाया गया · [coderluii.dev](https://coderluii.dev)
+[CoderLuii](https://github.com/coderluii) द्वारा बनाया गया · [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 यह container वही है जो मैं हर दिन उपयोग करता हूं। अगर इसने आपका आधा भी setup time बचाया जो इसने मेरा बचाया, तो एक star अच्छा लगेगा।
 

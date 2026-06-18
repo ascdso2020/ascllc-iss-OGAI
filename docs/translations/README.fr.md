@@ -15,7 +15,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/CoderLuii?style=social)](https://x.com/CoderLuii)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=PM2UXGVSTHDNL)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/CoderLuii)
-[![Website](https://img.shields.io/badge/website-coderluii.dev-orange?logo=astro)](https://coderluii.dev)
+[![Website](https://img.shields.io/badge/website-holyclaude.coderluii.dev-orange?logo=astro)](https://holyclaude.coderluii.dev)
 [![GitHub Release](https://img.shields.io/github/v/release/CoderLuii/HolyClaude?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/CoderLuii/HolyClaude/releases)
 [![Issues](https://img.shields.io/github/issues/CoderLuii/HolyClaude?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/issues)
 [![Contributors](https://img.shields.io/github/contributors/CoderLuii/HolyClaude?color=c4f042&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/graphs/contributors)
@@ -948,7 +948,7 @@ N'exécutez pas `cloudcli update` ni `npm install -g @cloudcli-ai/cloudcli@lates
 Pour épingler une version spécifique plutôt que `latest` :
 
 ```yaml
-image: coderluii/holyclaude:1.1.2   # instead of :latest
+image: coderluii/holyclaude:1.3.7   # instead of :latest
 ```
 
 <p align="right">
@@ -1081,7 +1081,7 @@ Comment HolyClaude se compare-t-il aux autres approches ?
 
 | Approche | Interface web | Multi-IA | Outils pré-configurés | Navigateur headless | Configuration en une commande | Persistance |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLIs | 50+ outils | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
+| **HolyClaude** | CloudCLI | 8 CLIs | 50+ outils | Chromium + Xvfb + Playwright | `docker compose up` | Bind mounts |
 | Claude Code (bare metal) | Non | Non | Installez vous-même | Installez vous-même | Installation multi-étapes | Manuelle |
 | Claude Code + oh-my-openagent | Non | Oui (multi-modèle) | Certains | Non | npm install | Manuelle |
 | DIY Docker + Claude Code | Peut-être | Peut-être | Ce que vous ajoutez | Si vous le configurez | Si vous écrivez le Dockerfile | Si vous configurez les volumes |
@@ -1185,7 +1185,7 @@ L'image Docker HolyClaude inclut des logiciels tiers, chacun sous sa propre lice
 
 | Composant | Licence | Source |
 |-----------|---------|--------|
-| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [CloudCLI](https://cloudcli.ai), [npm package](https://www.npmjs.com/package/@cloudcli-ai/cloudcli) |
 | Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
@@ -1223,7 +1223,7 @@ MIT — voir [LICENSE](LICENSE). Utilisez-le comme vous voulez.
 
 <div align="center">
 
-Construit par [CoderLuii](https://github.com/coderluii) · [coderluii.dev](https://coderluii.dev)
+Construit par [CoderLuii](https://github.com/coderluii) · [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 Ce conteneur est ce que j'utilise chaque jour. S'il vous fait gagner ne serait-ce que la moitié du temps de configuration qu'il m'a fait gagner, une étoile serait appréciée.
 

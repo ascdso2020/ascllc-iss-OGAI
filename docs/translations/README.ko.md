@@ -15,7 +15,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/CoderLuii?style=social)](https://x.com/CoderLuii)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=PM2UXGVSTHDNL)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/CoderLuii)
-[![Website](https://img.shields.io/badge/website-coderluii.dev-orange?logo=astro)](https://coderluii.dev)
+[![Website](https://img.shields.io/badge/website-holyclaude.coderluii.dev-orange?logo=astro)](https://holyclaude.coderluii.dev)
 [![GitHub Release](https://img.shields.io/github/v/release/CoderLuii/HolyClaude?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/CoderLuii/HolyClaude/releases)
 [![Issues](https://img.shields.io/github/issues/CoderLuii/HolyClaude?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/issues)
 [![Contributors](https://img.shields.io/github/contributors/CoderLuii/HolyClaude?color=c4f042&labelColor=black&style=flat-square)](https://github.com/CoderLuii/HolyClaude/graphs/contributors)
@@ -239,7 +239,7 @@ docker pull coderluii/holyclaude:slim
 
 > **`latest`는 항상 전체 이미지입니다.** Slim 사용자: 걱정 마세요 — Claude에게 없는 도구가 필요한 작업을 요청하면 몇 초 안에 설치됩니다. 동일한 기능을 제공하되, 초기 다운로드 크기만 작습니다.
 >
-> Docker Hub는 압축된 전송 크기를 표시합니다. `latest`는 약 4.0 GiB, `slim`은 약 2.1 GiB입니다. Docker, Synology Container Manager, NAS 파일시스템은 레이어가 풀린 뒤 더 큰 크기로 표시할 수 있습니다.
+> Docker Hub는 압축된 전송 크기를 표시합니다. `latest`는 약 4.1 GB, `slim`은 약 2.4 GB입니다. Docker, Synology Container Manager, NAS 파일시스템은 레이어가 풀린 뒤 더 큰 크기로 표시할 수 있습니다.
 
 <p align="right">
   <a href="#top">↑ 맨 위로</a>
@@ -948,7 +948,7 @@ docker compose up -d
 `latest` 대신 특정 버전을 고정하려면:
 
 ```yaml
-image: coderluii/holyclaude:1.1.2   # instead of :latest
+image: coderluii/holyclaude:1.3.7   # instead of :latest
 ```
 
 <p align="right">
@@ -1185,7 +1185,7 @@ HolyClaude Docker 이미지에는 각각 자체 라이선스를 가진 서드파
 
 | 구성 요소 | 라이선스 | 소스 |
 |-----------|---------|--------|
-| CloudCLI | AGPL-3.0-or-later | [siteboon/claudecodeui](https://github.com/siteboon/claudecodeui) |
+| CloudCLI | AGPL-3.0-or-later | [CloudCLI](https://cloudcli.ai), [npm package](https://www.npmjs.com/package/@cloudcli-ai/cloudcli) |
 | Desloppify | OSNL-0.2 | [peteromallet/desloppify](https://github.com/peteromallet/desloppify) |
 | s6-overlay | ISC | [just-containers/s6-overlay](https://github.com/just-containers/s6-overlay) |
 | Node.js | MIT | [nodejs/node](https://github.com/nodejs/node) |
@@ -1223,7 +1223,7 @@ MIT — [LICENSE](LICENSE) 참조. 원하는 대로 사용하세요.
 
 <div align="center">
 
-[CoderLuii](https://github.com/coderluii)가 만들었습니다 · [coderluii.dev](https://coderluii.dev)
+[CoderLuii](https://github.com/coderluii)가 만들었습니다 · [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 이 컨테이너는 제가 매일 사용하는 것입니다. 저에게 절약해 준 설정 시간의 절반만이라도 절약해 드렸다면, 별 하나 주시면 감사하겠습니다.
 

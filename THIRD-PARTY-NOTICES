@@ -8,7 +8,7 @@ licensed under MIT (see LICENSE).
 
 - License: AGPL-3.0-or-later
 - Copyright: CloudCLI UI Contributors
-- Source: https://github.com/siteboon/claudecodeui
+- Homepage: https://cloudcli.ai
 - npm: https://www.npmjs.com/package/@cloudcli-ai/cloudcli
 - Version: 1.34.0, installed from HolyClaude's vendored source-release tarball
 
@@ -33,7 +33,7 @@ build.
 - Build-time upstream checks: verify CloudCLI's WebSocket binary-frame handling
   and provider model command flow are present in the compiled runtime.
 
-The unmodified upstream source is available from the links above, and the
+The unmodified upstream package is available from the links above, and the
 HolyClaude modifications are visible in the public Dockerfile.
 
 ### Bundled CloudCLI Plugins

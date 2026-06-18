@@ -4,6 +4,11 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.7] - 06/18/2026
+
+### Added
+- Added the HolyCode Cloud early-access callout near the top of the README, linking readers to https://holycode.coderluii.dev/cloud.
+
 ## [1.3.6] - 06/18/2026
 
 ### Fixed

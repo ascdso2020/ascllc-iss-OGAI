@@ -58,8 +58,8 @@ That's it. Open your browser, sign in, start building.
 
 | Tag | Description | Docker Hub compressed size |
 |-----|-------------|----------------------------|
-| `latest` | Full image — everything pre-installed, zero wait | ~4.0 GiB |
-| `slim` | Core tools only — smaller download, extras install on demand | ~2.1 GiB |
+| `latest` | Full image — everything pre-installed, zero wait | ~4.1 GB |
+| `slim` | Core tools only — smaller download, extras install on demand | ~2.4 GB |
 | `X.Y.Z` | Full image, pinned version | Same as `latest` for that release |
 | `X.Y.Z-slim` | Slim image, pinned version | Same as `slim` for that release |
 
@@ -106,6 +106,6 @@ Credentials are stored locally in your bind-mounted `./data/claude` directory. H
 
 🐛 **Issues & requests:** [github.com/CoderLuii/HolyClaude/issues](https://github.com/CoderLuii/HolyClaude/issues)
 
-🌐 **Website:** [coderluii.dev](https://coderluii.dev)
+🌐 **Website:** [holyclaude.coderluii.dev](https://holyclaude.coderluii.dev)
 
 Built by [CoderLuii](https://github.com/coderluii) 🧡
