@@ -28,6 +28,17 @@ One command. Full AI development workstation. Claude Code, web UI, headless brow
 
 **Works with your existing Claude Code subscription.** Max/Pro plan, API key — whatever you have, it just works.
 
+> [!TIP]
+> **The install step is disappearing.**
+>
+> HolyClaude gives you the self-hosted AI workstation. [HolyCode Cloud](https://holycode.coderluii.dev/cloud) gives you the same idea without the server chore.
+>
+> No compose file. No exposed port. No Docker updates. No tunnel setup. No babysitting the box.
+>
+> Open the browser. Start the session. Build from anywhere.
+>
+> **Early access is free.** Claim your spot while it is still wide open.
+
 ---
 
 ## What is this?
