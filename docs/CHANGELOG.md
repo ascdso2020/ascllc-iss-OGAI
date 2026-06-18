@@ -4,6 +4,13 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.5] - 06/17/2026
+
+### Fixed
+- Patched the baked CloudCLI Web Terminal plugin so PTY output is decoded from raw UTF-8 bytes before it reaches xterm.js, preventing split multibyte characters from turning box drawing, emoji, or CJK output into replacement blocks.
+- Added explicit terminal font fallbacks and a `web-terminal-disable-webgl` browser toggle for systems where WebGL glyph rendering still shows black squares.
+- Added regression coverage for the Web Terminal patch so Docker builds fail when the pinned plugin source drifts.
+
 ## [1.3.4] - 06/17/2026
 
 ### Fixed

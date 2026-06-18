@@ -48,6 +48,11 @@ HolyClaude builds and enables these CloudCLI plugins in the image:
 Each plugin remains under its upstream license. Inspect the plugin repositories
 for their source and license files.
 
+HolyClaude patches the pinned `web-terminal` plugin during the Docker build so
+PTY output is decoded safely before it reaches xterm.js, the default terminal
+font stack includes broader fallbacks, and WebGL rendering can be disabled per
+browser with `localStorage['web-terminal-disable-webgl'] = 'true'`.
+
 ## s6-overlay
 
 - License: ISC

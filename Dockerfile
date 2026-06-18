@@ -185,6 +185,7 @@ COPY scripts/patch-cloudcli-apprise-notifications.mjs /tmp/patch-cloudcli-appris
 COPY scripts/patch-cloudcli-codex-complete-exit-code.mjs /tmp/patch-cloudcli-codex-complete-exit-code.mjs
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
 COPY scripts/patch-cloudcli-disable-self-update.mjs /tmp/patch-cloudcli-disable-self-update.mjs
+COPY --chown=claude:claude scripts/patch-cloudcli-web-terminal-rendering.mjs /tmp/patch-cloudcli-web-terminal-rendering.mjs
 RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
 
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
@@ -225,7 +226,9 @@ RUN mkdir -p /home/claude/.claude-code-ui/plugins && \
     git fetch --depth 1 origin 2bb28540ff5fda84972f99489f976551b8a552e8 && \
     git checkout --detach FETCH_HEAD && \
     test "$(git rev-parse --short=12 HEAD)" = "2bb28540ff5f" && \
+    node /tmp/patch-cloudcli-web-terminal-rendering.mjs /home/claude/.claude-code-ui/plugins/web-terminal && \
     npm install && npm run build && \
+    rm -f /tmp/patch-cloudcli-web-terminal-rendering.mjs && \
     echo '{"project-stats":{"name":"project-stats","source":"https://github.com/cloudcli-ai/cloudcli-plugin-starter","enabled":true},"web-terminal":{"name":"web-terminal","source":"https://github.com/cloudcli-ai/cloudcli-plugin-terminal","enabled":true}}' > /home/claude/.claude-code-ui/plugins.json
 USER root
 

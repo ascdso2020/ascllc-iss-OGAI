@@ -32,6 +32,29 @@ Broad NAS mounts are supported, but remember that `/workspace` is the CloudCLI b
 
 ---
 
+### CloudCLI Web Terminal shows black squares or missing characters
+
+**Symptom:** The Web Terminal is unreadable. Box drawing, emoji, CJK text, or CLI banners show as black squares, missing letters, or broken characters.
+
+**Cause:** Older HolyClaude images built the CloudCLI Web Terminal plugin with string-based PTY output handling and a narrow xterm.js font stack. Split multibyte PTY chunks could reach the browser as malformed text, and WebGL glyph rendering could still choose a weak fallback font.
+
+**Fix:** Update to HolyClaude `1.3.5` or newer:
+```bash
+docker compose pull
+docker compose up -d
+```
+
+HolyClaude now patches the baked Web Terminal plugin before build so PTY output is decoded from raw UTF-8 bytes and xterm.js gets explicit terminal font fallbacks.
+
+If the updated image still shows black squares in one browser, disable the WebGL terminal renderer for that browser profile:
+```js
+localStorage.setItem('web-terminal-disable-webgl', 'true')
+```
+
+Then close and reopen the Web Terminal tab. This keeps the Docker image the same; it only changes the renderer preference stored by your browser for CloudCLI.
+
+---
+
 ### SQLite "database is locked" errors
 
 **Symptom:** Constant lock errors from CloudCLI account database or other SQLite databases.

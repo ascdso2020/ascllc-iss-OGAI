@@ -133,6 +133,11 @@ CloudCLI plugins require `git clone` + `npm install` + `npm run build`. Running 
 
 Baking them into the Dockerfile ensures a clean, controlled build environment.
 
+HolyClaude also applies small fail-closed patches to the pinned plugins before
+building them. The Web Terminal patch keeps PTY output UTF-8 safe, widens the
+xterm.js font fallback stack, and adds the per-browser
+`web-terminal-disable-webgl` escape hatch for renderer-specific glyph issues.
+
 ### Why `runuser` instead of `su`?
 
 `su` uses PAM authentication, which can fail with renamed users (the base image's `node` user renamed to `claude`). `runuser` skips PAM entirely — it's designed for scripts that need to run commands as another user.

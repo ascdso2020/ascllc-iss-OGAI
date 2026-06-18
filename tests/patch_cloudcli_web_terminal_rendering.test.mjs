@@ -1,0 +1,119 @@
+import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
+const patchScript = path.join(repoRoot, 'scripts/patch-cloudcli-web-terminal-rendering.mjs');
+
+const serverFixture = `interface PtyProcess {
+  onData(callback: (data: string) => void): void;
+}
+
+wss.on('connection', (ws: any) => {
+  let ptyProc: PtyProcess;
+  ptyProc = pty.spawn(shell, [], {
+      name: 'xterm-256color',
+      cols: 80,
+      rows: 24,
+      cwd,
+      env: { ...process.env, TERM: 'xterm-256color', COLORTERM: 'truecolor', TERM_PROGRAM: 'web-terminal' },
+    });
+
+  ptyProc.onData((chunk: string) => {
+    ptyProc.pause();
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(chunk, () => ptyProc.resume());
+    } else {
+      ptyProc.resume();
+    }
+  });
+});
+`;
+
+const indexFixture = `const PREFS_KEY = 'web-terminal-prefs';
+function loadPrefs(): Partial<Prefs> { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}'); } catch { return {}; } }
+function savePrefs(p: Prefs): void { try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* ignore */ } }
+
+class TerminalSession {
+  constructor(opts: SessionOptions) {
+    this.terminal = new opts.Terminal({
+      cursorBlink: true,
+      fontSize: opts.prefs.fontSize || 14,
+      fontFamily: opts.prefs.fontFamily || "Menlo, Monaco, 'Courier New', monospace",
+      allowProposedApi: true, convertEol: true, scrollback: 10000,
+      tabStopWidth: 4, macOptionIsMeta: true, macOptionClickForcesSelection: true,
+      theme: THEMES[opts.prefs.theme || 'VS Dark'],
+    });
+
+    try {
+      const webgl = new opts.WebglAddon();
+      webgl.onContextLoss(() => { try { webgl.dispose(); } catch { /* ignore */ } });
+      this.terminal.loadAddon(webgl);
+    } catch { /* ignore */ }
+  }
+}
+`;
+
+async function createPluginFixture({ driftIndex = false } = {}) {
+  const pluginRoot = await mkdtemp(path.join(tmpdir(), 'holyclaude-web-terminal-'));
+  const srcDir = path.join(pluginRoot, 'src');
+  await mkdir(srcDir, { recursive: true });
+  await writeFile(path.join(srcDir, 'server.ts'), serverFixture);
+  await writeFile(
+    path.join(srcDir, 'index.ts'),
+    driftIndex ? indexFixture.replace('new opts.WebglAddon()', 'new opts.GpuAddon()') : indexFixture
+  );
+  return pluginRoot;
+}
+
+async function runPatch(pluginRoot) {
+  return execFileAsync(process.execPath, [patchScript, pluginRoot], {
+    cwd: repoRoot
+  });
+}
+
+async function readPluginSource(pluginRoot, relativePath) {
+  return readFile(path.join(pluginRoot, relativePath), 'utf8');
+}
+
+test('CloudCLI web terminal rendering patch is idempotent', async () => {
+  const pluginRoot = await createPluginFixture();
+
+  await runPatch(pluginRoot);
+
+  const firstRunServer = await readPluginSource(pluginRoot, 'src/server.ts');
+  const firstRunIndex = await readPluginSource(pluginRoot, 'src/index.ts');
+
+  assert.ok(firstRunServer.includes('onData(callback: (data: string | Buffer) => void): void;'));
+  assert.ok(firstRunServer.includes('encoding: null,'));
+  assert.ok(firstRunServer.includes("new TextDecoder('utf-8', { fatal: false })"));
+  assert.ok(firstRunServer.includes('decoder.decode(chunk, { stream: true })'));
+  assert.equal(firstRunServer.includes('ws.send(chunk, () => ptyProc.resume())'), false);
+
+  assert.ok(firstRunIndex.includes('const DEFAULT_FONT_FAMILY ='));
+  assert.ok(firstRunIndex.includes('Noto Sans Mono CJK JP'));
+  assert.ok(firstRunIndex.includes('web-terminal-disable-webgl'));
+  assert.ok(firstRunIndex.includes('fontFamily: opts.prefs.fontFamily || DEFAULT_FONT_FAMILY,'));
+  assert.ok(firstRunIndex.includes('if (!isWebglDisabled()) {'));
+  assert.equal(firstRunIndex.includes('fontFamily: opts.prefs.fontFamily || "Menlo'), false);
+
+  await runPatch(pluginRoot);
+
+  assert.equal(await readPluginSource(pluginRoot, 'src/server.ts'), firstRunServer);
+  assert.equal(await readPluginSource(pluginRoot, 'src/index.ts'), firstRunIndex);
+});
+
+test('CloudCLI web terminal rendering patch fails closed when anchors drift', async () => {
+  const pluginRoot = await createPluginFixture({ driftIndex: true });
+
+  await assert.rejects(
+    () => runPatch(pluginRoot),
+    /CloudCLI web terminal rendering anchors not found/
+  );
+});

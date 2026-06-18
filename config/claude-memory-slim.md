@@ -206,6 +206,7 @@ Codex has separate configurable near-parity controls:
 ## Tips
 
 - Use the **Web Terminal** plugin in CloudCLI instead of "Continue in Shell" (known CloudCLI bug)
+- If Web Terminal text shows black squares after updating, run `localStorage.setItem('web-terminal-disable-webgl', 'true')` in the CloudCLI browser console and reopen the terminal
 - Chromium needs `shm_size: 2g` or higher in docker-compose to avoid crashes
 - If on SMB/CIFS mounts, enable `CHOKIDAR_USEPOLLING=1` and `WATCHFILES_FORCE_POLLING=true`
 - SQLite databases should NOT be stored on network mounts (file locking fails on CIFS)
