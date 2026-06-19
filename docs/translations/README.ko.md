@@ -1081,7 +1081,7 @@ HolyClaude는 다른 접근 방식과 어떻게 비교되나요?
 
 | 접근 방식 | 웹 UI | 멀티 AI | 사전 설정 도구 | 헤드리스 브라우저 | 원 커맨드 설정 | 영속성 |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5개 CLI | 50개 이상 도구 | Chromium + Xvfb + Playwright | `docker compose up` | 바인드 마운트 |
+| **HolyClaude** | CloudCLI | 8개 CLI | 50개 이상 도구 | Chromium + Xvfb + Playwright | `docker compose up` | 바인드 마운트 |
 | Claude Code (베어 메탈) | 없음 | 없음 | 직접 설치 | 직접 설치 | 다단계 설치 | 수동 |
 | Claude Code + oh-my-openagent | 없음 | 예 (멀티 모델) | 일부 | 없음 | npm install | 수동 |
 | DIY Docker + Claude Code | 아마도 | 아마도 | 직접 추가 | 직접 설정 시 | Dockerfile 작성 시 | 볼륨 설정 시 |

@@ -1081,7 +1081,7 @@ HolyClaude は他のアプローチとどう違うか？
 
 | アプローチ | Web UI | マルチ AI | 設定済みツール | ヘッドレスブラウザ | ワンコマンドセットアップ | 永続化 |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLI | 50 以上のツール | Chromium + Xvfb + Playwright | `docker compose up` | バインドマウント |
+| **HolyClaude** | CloudCLI | 8 CLI | 50 以上のツール | Chromium + Xvfb + Playwright | `docker compose up` | バインドマウント |
 | Claude Code（ベアメタル） | なし | なし | 自分でインストール | 自分でインストール | マルチステップインストール | 手動 |
 | Claude Code + oh-my-openagent | なし | あり（マルチモデル） | 一部 | なし | npm install | 手動 |
 | DIY Docker + Claude Code | あるかも | あるかも | 自分で追加したもの | 設定すれば | Dockerfile を書けば | ボリュームをセットアップすれば |

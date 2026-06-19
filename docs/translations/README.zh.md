@@ -1081,7 +1081,7 @@ HolyClaude 与其他方案的对比：
 
 | 方案 | Web UI | 多 AI | 预配置工具 | 无头浏览器 | 一键启动 | 持久化 |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 个 CLI | 50+ 工具 | Chromium + Xvfb + Playwright | `docker compose up` | 绑定挂载 |
+| **HolyClaude** | CloudCLI | 8 个 CLI | 50+ 工具 | Chromium + Xvfb + Playwright | `docker compose up` | 绑定挂载 |
 | Claude Code（裸机） | 无 | 无 | 自行安装 | 自行安装 | 多步骤安装 | 手动 |
 | Claude Code + oh-my-openagent | 无 | 是（多模型） | 部分 | 无 | npm install | 手动 |
 | DIY Docker + Claude Code | 也许 | 也许 | 你自己添加的 | 如果你配置了 | 如果你写了 Dockerfile | 如果你设置了 volumes |

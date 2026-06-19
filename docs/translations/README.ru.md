@@ -1081,7 +1081,7 @@ docker buildx build --platform linux/arm64 -t holyclaude .
 
 | Подход | Веб-интерфейс | Мульти-AI | Предустановленные инструменты | Безголовый браузер | Настройка одной командой | Постоянство |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLI | 50+ инструментов | Chromium + Xvfb + Playwright | `docker compose up` | Bind-монтирования |
+| **HolyClaude** | CloudCLI | 8 CLI | 50+ инструментов | Chromium + Xvfb + Playwright | `docker compose up` | Bind-монтирования |
 | Claude Code (голое железо) | Нет | Нет | Устанавливайте сами | Устанавливайте сами | Многошаговая установка | Вручную |
 | Claude Code + oh-my-openagent | Нет | Да (мульти-модель) | Некоторые | Нет | npm install | Вручную |
 | DIY Docker + Claude Code | Возможно | Возможно | Что добавите | Если настроите | Если напишете Dockerfile | Если настроите тома |

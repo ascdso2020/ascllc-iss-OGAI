@@ -1081,7 +1081,7 @@ Come si confronta HolyClaude con altri approcci?
 
 | Approccio | Interfaccia web | Multi-AI | Strumenti pre-configurati | Browser headless | Configurazione con un comando | Persistenza |
 |----------|--------|----------|---------------------|-----------------|-------------------|-------------|
-| **HolyClaude** | CloudCLI | 5 CLI | 50+ strumenti | Chromium + Xvfb + Playwright | `docker compose up` | Bind mount |
+| **HolyClaude** | CloudCLI | 8 CLI | 50+ strumenti | Chromium + Xvfb + Playwright | `docker compose up` | Bind mount |
 | Claude Code (bare metal) | No | No | Installa tu stesso | Installa tu stesso | Installazione multi-step | Manuale |
 | Claude Code + oh-my-openagent | No | Sì (multi-modello) | Alcuni | No | npm install | Manuale |
 | DIY Docker + Claude Code | Forse | Forse | Quello che aggiungi | Se lo configuri | Se scrivi il Dockerfile | Se imposti i volumi |
