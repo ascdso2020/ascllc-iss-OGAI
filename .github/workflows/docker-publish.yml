@@ -19,7 +19,7 @@ env:
 # Required repository secrets:
 # - DOCKERHUB_USERNAME: Docker Hub account that owns coderluii/holyclaude
 # - DOCKERHUB_TOKEN: Docker Hub access token with read/write access to that repo
-# - GITHUB_TOKEN: provided by GitHub Actions for GHCR package publishing
+# - GHCR_TOKEN: GitHub token with package write access for GHCR publishing
 
 jobs:
   build-and-push:
@@ -61,7 +61,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Extract metadata
         id: meta
