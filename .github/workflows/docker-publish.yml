@@ -19,7 +19,7 @@ env:
 # Required repository secrets:
 # - DOCKERHUB_USERNAME: Docker Hub account that owns coderluii/holyclaude
 # - DOCKERHUB_TOKEN: Docker Hub access token with read/write access to that repo
-# - GHCR_TOKEN: GitHub token or PAT with package write access for ghcr.io/coderluii/holyclaude
+# - GHCR_TOKEN: GitHub token with package write access for GHCR publishing
 
 jobs:
   build-and-push:

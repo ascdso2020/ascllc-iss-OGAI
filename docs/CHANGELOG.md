@@ -4,6 +4,15 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 07/02/2026
+
+### Changed
+- Repackaged the Docker publish workflow cleanup into one versioned release commit after `v1.3.9`, keeping GHCR publishing on `GHCR_TOKEN`.
+- Clarified the required `GHCR_TOKEN` secret note for Docker release publishing.
+
+### Fixed
+- Kept Docker publishing on `actions/checkout@v6.0.3` and left the unvalidated `actions/checkout@v7.0.0` bump out of the release path.
+
 ## [1.3.7] - 06/18/2026
 
 ### Added
