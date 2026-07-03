@@ -5,6 +5,7 @@ workspace/*
 .omc/
 evidence/
 .evidence/
+.tmp/
 
 # Environment files with secrets
 .env

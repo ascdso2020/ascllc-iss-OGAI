@@ -4,6 +4,20 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.2] - 07/03/2026
+
+### Added
+- Added opt-in key-only SSH and Mosh support to both image variants for localhost, LAN, VPN, and Tailscale terminal access.
+- Added a supervised `sshd` service that stays out of the s6 user bundle until `HOLYCLAUDE_SSH_ENABLE=true` and a safe read-only `authorized_keys` mount is present.
+- Added Docker smoke coverage for disabled-by-default SSH, fail-closed key handling, key login, password/root rejection, host-key persistence, and Mosh enablement.
+
+### Changed
+- Documented SSH/Mosh compose examples, configuration variables, troubleshooting steps, and Docker Hub notes without changing the quick-start port exposure.
+
+### Security
+- Kept SSH disabled by default, disabled password and root login, and rejected `authorized_keys` sources under `.claude`, `/home/claude`, or `/workspace`.
+- Gated `mosh-server` behind `HOLYCLAUDE_MOSH_ENABLE=true` and a configured UDP range instead of leaving it directly callable after package install.
+
 ## [1.4.1] - 07/02/2026
 
 ### Added

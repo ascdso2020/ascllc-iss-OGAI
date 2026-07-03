@@ -540,7 +540,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `imagemagick` | Image conversion (`convert`, `identify`, `mogrify`) |
 | `chromium` | Headless browser — screenshots, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | सीधे databases से बात करें |
-| `openssh-client` | चीजों में SSH करें |
+| `openssh-client`, `openssh-server`, `mosh` | बाहर SSH, और कंटेनर में वैकल्पिक SSH/Mosh एक्सेस |
 
 </details>
 

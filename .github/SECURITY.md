@@ -31,6 +31,22 @@ Pi Coding Agent runs with the same container user permissions as the `pi` proces
 
 Do not expose CloudCLI directly to the public internet, especially with any bypass mode enabled. Docker limits access to the container and mounted volumes, but CloudCLI still exposes an interactive coding environment with credentials and mounted workspace files.
 
+## Optional SSH and Mosh
+
+HolyClaude includes `sshd` and Mosh in both image variants, but the server path is disabled by default. `sshd` is only added to the s6 service bundle when `HOLYCLAUDE_SSH_ENABLE=true` and startup finds a safe public-key file mounted outside `/home/claude/.claude`, `/home/claude`, and `/workspace`.
+
+SSH is key-only:
+
+- `PermitRootLogin no`
+- `PasswordAuthentication no`
+- `KbdInteractiveAuthentication no`
+- `AllowUsers claude`
+- no X11, TCP forwarding, agent forwarding, or tunnel forwarding by default
+
+The public-key source should be a separate read-only mount such as `/run/holyclaude-ssh/authorized_keys`. Do not store `authorized_keys` in `.claude`; that directory also stores credentials and agent runtime state.
+
+Mosh is not a daemon. The `mosh-server` wrapper only runs when `HOLYCLAUDE_MOSH_ENABLE=true`, and it uses the configured UDP range. Keep SSH and Mosh ports behind localhost, VPN, Tailscale, or firewall allowlists.
+
 ## CloudCLI Runtime
 
 HolyClaude vendors `@cloudcli-ai/cloudcli` and applies Docker-build patches to the source and compiled runtime files. Do not replace CloudCLI from inside a running container with `cloudcli update` or `npm install -g @cloudcli-ai/cloudcli@latest`; update HolyClaude with `docker compose pull && docker compose up -d` instead.

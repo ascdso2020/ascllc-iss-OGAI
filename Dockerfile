@@ -52,8 +52,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     strace lsof iproute2 procps htop \
     # Database CLI tools
     postgresql-client redis-tools sqlite3 \
-    # SSH client (NOT server)
-    openssh-client \
+    # SSH/Mosh remote shell support (disabled by default)
+    openssh-client openssh-server mosh \
     # Xvfb for headless Chrome
     xvfb \
     # Image processing
@@ -61,6 +61,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Sudo
     sudo \
     && rm -rf /var/lib/apt/lists/*
+
+RUN rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
 # ---------- bubblewrap setuid (Codex CLI sandbox on restricted kernels) ----------
 RUN test -x /usr/bin/bwrap && chown root:root /usr/bin/bwrap && chmod 4755 /usr/bin/bwrap && test "$(stat -c '%a %u %g' /usr/bin/bwrap)" = "4755 0 0"
@@ -239,6 +241,7 @@ RUN echo "${VARIANT}" > /etc/holyclaude-variant
 # ---------- Copy config files ----------
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY scripts/bootstrap.sh /usr/local/bin/bootstrap.sh
+COPY scripts/holyclaude-mosh-server /usr/local/bin/holyclaude-mosh-server
 COPY scripts/persist-claude-json.mjs /usr/local/bin/persist-claude-json.mjs
 COPY scripts/notify.py /usr/local/bin/notify.py
 COPY config/settings.json /usr/local/share/holyclaude/settings.json
@@ -246,8 +249,15 @@ COPY config/claude-memory-full.md /usr/local/share/holyclaude/claude-memory-full
 COPY config/claude-memory-slim.md /usr/local/share/holyclaude/claude-memory-slim.md
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     /usr/local/bin/bootstrap.sh \
+    /usr/local/bin/holyclaude-mosh-server \
     /usr/local/bin/persist-claude-json.mjs \
     /usr/local/bin/notify.py
+
+RUN mkdir -p /usr/local/lib/holyclaude && \
+    if [ -x /usr/bin/mosh-server ]; then \
+      mv /usr/bin/mosh-server /usr/local/lib/holyclaude/mosh-server.real && \
+      ln -sf /usr/local/bin/holyclaude-mosh-server /usr/bin/mosh-server; \
+    fi
 
 # ---------- s6-overlay service definitions ----------
 COPY s6-overlay/s6-rc.d/cloudcli/type /etc/s6-overlay/s6-rc.d/cloudcli/type
@@ -256,9 +266,12 @@ COPY s6-overlay/s6-rc.d/persist-claude-json/type /etc/s6-overlay/s6-rc.d/persist
 COPY s6-overlay/s6-rc.d/persist-claude-json/run /etc/s6-overlay/s6-rc.d/persist-claude-json/run
 COPY s6-overlay/s6-rc.d/xvfb/type /etc/s6-overlay/s6-rc.d/xvfb/type
 COPY s6-overlay/s6-rc.d/xvfb/run /etc/s6-overlay/s6-rc.d/xvfb/run
+COPY s6-overlay/s6-rc.d/sshd/type /etc/s6-overlay/s6-rc.d/sshd/type
+COPY s6-overlay/s6-rc.d/sshd/run /etc/s6-overlay/s6-rc.d/sshd/run
 RUN chmod +x /etc/s6-overlay/s6-rc.d/cloudcli/run \
     /etc/s6-overlay/s6-rc.d/persist-claude-json/run \
-    /etc/s6-overlay/s6-rc.d/xvfb/run && \
+    /etc/s6-overlay/s6-rc.d/xvfb/run \
+    /etc/s6-overlay/s6-rc.d/sshd/run && \
     touch /etc/s6-overlay/s6-rc.d/user/contents.d/cloudcli && \
     touch /etc/s6-overlay/s6-rc.d/user/contents.d/persist-claude-json && \
     touch /etc/s6-overlay/s6-rc.d/user/contents.d/xvfb

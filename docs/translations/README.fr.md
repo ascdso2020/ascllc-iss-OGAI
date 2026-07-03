@@ -540,7 +540,7 @@ Ce n'est pas un conteneur minimal. C'est un poste de travail de développement c
 | `imagemagick` | Conversion d'images (`convert`, `identify`, `mogrify`) |
 | `chromium` | Navigateur headless — captures d'écran, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | Communication directe avec les bases de données |
-| `openssh-client` | SSH vers d'autres machines |
+| `openssh-client`, `openssh-server`, `mosh` | SSH sortant et accès SSH/Mosh optionnel au conteneur |
 
 </details>
 

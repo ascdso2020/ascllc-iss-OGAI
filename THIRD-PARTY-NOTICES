@@ -59,6 +59,24 @@ browser with `localStorage['web-terminal-disable-webgl'] = 'true'`.
 - Source: https://github.com/just-containers/s6-overlay
 - Version: 3.2.3.0
 
+## OpenSSH
+
+- License: BSD-style
+- Source: https://www.openssh.com/
+- Debian package: `openssh-client`, `openssh-server`
+
+OpenSSH provides outbound SSH client support and the optional key-only `sshd`
+service. HolyClaude keeps `sshd` disabled by default.
+
+## Mosh
+
+- License: GPL-3.0-or-later
+- Source: https://mosh.org/
+- Debian package: `mosh`
+
+Mosh provides the optional roaming terminal path. HolyClaude gates
+`mosh-server` behind `HOLYCLAUDE_MOSH_ENABLE=true`.
+
 ## Node.js
 
 - License: MIT

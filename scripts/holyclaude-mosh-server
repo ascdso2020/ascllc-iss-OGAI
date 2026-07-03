@@ -1,0 +1,51 @@
+#!/bin/sh
+set -eu
+
+CONFIG="/run/holyclaude-ssh/mosh.env"
+REAL="/usr/local/lib/holyclaude/mosh-server.real"
+
+if [ ! -x "$REAL" ]; then
+  echo "HolyClaude: mosh-server runtime is missing" >&2
+  exit 1
+fi
+
+if [ ! -r "$CONFIG" ]; then
+  echo "HolyClaude: Mosh is disabled. Set HOLYCLAUDE_MOSH_ENABLE=true and map the UDP range to use mosh." >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+. "$CONFIG"
+
+case "${HOLYCLAUDE_MOSH_ENABLE:-false}" in
+  true|TRUE|1|yes|YES|on|ON) ;;
+  *)
+    echo "HolyClaude: Mosh is disabled. Set HOLYCLAUDE_MOSH_ENABLE=true to use mosh." >&2
+    exit 1
+    ;;
+esac
+
+START="${HOLYCLAUDE_MOSH_UDP_START:-60000}"
+END="${HOLYCLAUDE_MOSH_UDP_END:-60010}"
+case "$START:$END" in
+  *[!0-9:]*|:*|*:)
+    echo "HolyClaude: invalid Mosh UDP range" >&2
+    exit 1
+    ;;
+esac
+
+has_port=0
+for arg in "$@"; do
+  case "$arg" in
+    -p|--port|-p=*|--port=*)
+      has_port=1
+      ;;
+  esac
+done
+
+if [ "${1:-}" = "new" ] && [ "$has_port" = "0" ]; then
+  shift
+  exec "$REAL" new -p "$START:$END" "$@"
+fi
+
+exec "$REAL" "$@"

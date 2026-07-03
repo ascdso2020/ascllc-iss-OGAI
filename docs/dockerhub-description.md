@@ -48,6 +48,8 @@ That's it. Open your browser, sign in, start building.
 
 🛠️ **50+ Dev Tools** — Node.js 26, Python 3, TypeScript, git, GitHub CLI, database clients (PostgreSQL, SQLite, Redis), deployment CLIs (Vercel, Wrangler, Netlify, Azure), and more
 
+🔐 **Optional SSH/Mosh** — Key-only `sshd` and Mosh are installed in both variants, disabled by default, and meant for localhost/VPN/Tailscale access only
+
 🔎 **Desloppify included** — The `desloppify` CLI ships in both images. It is passive by default and only scans when you run it.
 
 ⚙️ **s6-overlay 3.2.3.0** — Proper PID 1 process supervision with graceful shutdown and automatic service restarts
@@ -87,6 +89,8 @@ Credentials are stored locally in your bind-mounted `./data/claude` directory. H
 | `NOTIFY_PUSHOVER` | Pushover URL for notifications | unset |
 | `NOTIFY_SLACK` | Slack webhook URL for notifications | unset |
 | `NOTIFY_URLS` | Catch-all Apprise notification URLs | unset |
+| `HOLYCLAUDE_SSH_ENABLE` | Optional key-only SSH service | `false` |
+| `HOLYCLAUDE_MOSH_ENABLE` | Optional Mosh UDP session support | `false` |
 
 For rootless Podman on SELinux hosts, create `data/claude` and `workspace` first, then use `docker-compose.podman-rootless.yaml`. It uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels so host and container edits to `/workspace` stay under the same user. Do not add `:U` to `/workspace` unless you want Podman to rewrite host ownership for the container namespace.
 

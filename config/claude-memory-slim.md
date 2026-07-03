@@ -21,8 +21,9 @@ You are running inside a **HolyClaude Docker container** (slim variant). Core to
 |---------|-------------|------|
 | **CloudCLI** | Web UI for Claude Code | `3001` |
 | **Xvfb** | Virtual display for headless Chromium | `:99` (internal) |
+| **sshd** | Optional key-only SSH login as `claude` | `22` when `HOLYCLAUDE_SSH_ENABLE=true` |
 
-Both managed by s6-overlay — they auto-restart on failure.
+CloudCLI, Xvfb, Claude session sync, and optional sshd are managed by s6-overlay.
 
 ## Node.js & npm (v26)
 
@@ -128,7 +129,7 @@ These take longer to install (~1-2 minutes) because they require system dependen
 ### Command-line utilities:
 - **Search:** ripgrep (`rg`), fd (`fdfind`), fzf, grep
 - **Files:** tree, bat (`batcat` or `bat`), jq, zip/unzip
-- **Network:** curl, wget, openssh-client
+- **Network:** curl, wget, openssh-client, openssh-server, mosh
 - **Process:** htop, lsof, strace, iproute2 (`ip`, `ss`)
 - **Terminal:** tmux
 - **Version control:** git, gh (GitHub CLI)
@@ -194,6 +195,13 @@ Codex has separate configurable near-parity controls:
 - CloudCLI Codex chat: `HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE`, read at runtime by CloudCLI. Valid values: `default`, `acceptEdits`, `bypassPermissions`. Recommended: `acceptEdits`.
 - Raw `codex` CLI: `HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE`, used only when creating a new `~/.codex/config.toml` on first boot. Existing configs are not overwritten, and the generated value persists until you edit it.
 - `bypassPermissions` gives full access with no approval inside the Docker container and mounted volumes. Use it only for trusted local workspaces.
+
+## Optional SSH/Mosh
+
+- `HOLYCLAUDE_SSH_ENABLE=false` by default. No SSH daemon runs unless it is set to `true`.
+- `HOLYCLAUDE_SSH_AUTHORIZED_KEYS` defaults to `/run/holyclaude-ssh/authorized_keys`.
+- `authorized_keys` must come from a separate read-only mount, not `.claude`, `/home/claude`, or `/workspace`.
+- `HOLYCLAUDE_MOSH_ENABLE=false` by default. Mosh uses SSH first, then UDP `60000-60010` unless configured otherwise.
 
 ## Container Lifecycle
 

@@ -360,6 +360,8 @@ services:
       # - "127.0.0.1:8787:8787"            # Wrangler (Cloudflare Workers)
       # - "127.0.0.1:9229:9229"            # Node.js debugger
       # - "127.0.0.1:1455:1455"            # Codex auth callback port
+      # - "127.0.0.1:2222:22"              # Optional SSH, localhost/VPN only
+      # - "127.0.0.1:60000-60010:60000-60010/udp"  # Optional Mosh UDP range
     volumes:
       #
       # PERSISTENT DATA
@@ -375,6 +377,12 @@ services:
       #               Override the host path from `.env` if you want a different root.
       #
       - ${HOLYCLAUDE_HOST_WORKSPACE_DIR:-./workspace}:/workspace
+      #
+      # OPTIONAL SSH/MOSH REMOTE SHELL
+      # Keep authorized_keys outside .claude and /workspace. Mount it read-only.
+      #
+      # - ./data/ssh/authorized_keys:/run/holyclaude-ssh/authorized_keys:ro
+      # - holyclaude-ssh:/var/lib/holyclaude-ssh
     environment:
       #
       # TIMEZONE
@@ -432,6 +440,19 @@ services:
       #
       # - HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE=acceptEdits
       # - HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE=acceptEdits
+      #
+      # SSH/MOSH REMOTE SHELL (optional, disabled by default)
+      # Keep this behind localhost, VPN, Tailscale, or a firewall.
+      #
+      # - HOLYCLAUDE_SSH_ENABLE=false
+      # - HOLYCLAUDE_SSH_AUTHORIZED_KEYS=/run/holyclaude-ssh/authorized_keys
+      # - HOLYCLAUDE_SSH_HOST_KEYS_DIR=/var/lib/holyclaude-ssh/host_keys
+      # - HOLYCLAUDE_MOSH_ENABLE=false
+      # - HOLYCLAUDE_MOSH_UDP_START=60000
+      # - HOLYCLAUDE_MOSH_UDP_END=60010
+
+# volumes:
+#   holyclaude-ssh:
 ```
 
 Then:
@@ -501,6 +522,12 @@ The complete reference. Every variable, what it defaults to, what it does.
 | `HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE` | `acceptEdits` | CloudCLI Codex chat runtime mode. Valid: `default`, `acceptEdits`, `bypassPermissions` |
 | `HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE` | `default` | Raw `codex` CLI first-boot mode for new `~/.codex/config.toml` only. Valid: `default`, `acceptEdits`, `bypassPermissions` |
 | `HOLYCLAUDE_DESLOPPIFY_SETUP` | `off` | Optional Desloppify global skill setup. Valid: `off`, `all`, `claude`, `codex`, `gemini`, `opencode`, or comma-separated subsets |
+| `HOLYCLAUDE_SSH_ENABLE` | `false` | Enables the optional `sshd` service when a safe `authorized_keys` mount is present |
+| `HOLYCLAUDE_SSH_AUTHORIZED_KEYS` | `/run/holyclaude-ssh/authorized_keys` | Read-only public-key file for SSH login as `claude`; must not live under `.claude` or `/workspace` |
+| `HOLYCLAUDE_SSH_HOST_KEYS_DIR` | `/var/lib/holyclaude-ssh/host_keys` | Root-owned SSH host key directory; mount `/var/lib/holyclaude-ssh` to keep fingerprints stable after recreate |
+| `HOLYCLAUDE_MOSH_ENABLE` | `false` | Allows `mosh-server` for SSH sessions when UDP ports are mapped |
+| `HOLYCLAUDE_MOSH_UDP_START` | `60000` | First UDP port Mosh may use |
+| `HOLYCLAUDE_MOSH_UDP_END` | `60010` | Last UDP port Mosh may use |
 
 <p align="right">
   <a href="#top">↑ back to top</a>
@@ -562,7 +589,7 @@ This is not a minimal container. This is an entire development workstation.
 | `imagemagick` | Image conversion (`convert`, `identify`, `mogrify`) |
 | `chromium` | Headless browser — screenshots, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | Talk to databases directly |
-| `openssh-client` | SSH into things |
+| `openssh-client`, `openssh-server`, `mosh` | SSH out, and optional key-only SSH/Mosh access into the container |
 
 </details>
 
@@ -728,6 +755,7 @@ graph TB
         EP --> S6["s6-overlay\n(PID 1)"]
         S6 --> CC["CloudCLI\n(:3001)"]
         S6 --> XV["Xvfb\n(:99)"]
+        S6 -. optional .-> SSH["sshd\n(:22)"]
         CC --> CLAUDE["Claude Code CLI"]
         CLAUDE --> TOOLS["Dev Tools\n(Node, Python, Git...)"]
         CLAUDE --> CHROME["Chromium\n(headless)"]
@@ -752,7 +780,7 @@ graph TB
 
 2. **First boot only** — `bootstrap.sh` runs once. Copies default settings, memory template, configures git identity. Creates a sentinel file (`.holyclaude-bootstrapped`) so it never runs again. Your customizations are safe from that point on.
 
-3. **s6-overlay takes over as PID 1** — This isn't supervisord. It's [s6-overlay](https://github.com/just-containers/s6-overlay), purpose-built for Docker. Supervises CloudCLI, Xvfb, and Claude session sync. Auto-restarts on crash. Forwards signals. Reaps zombies. Shuts down gracefully.
+3. **s6-overlay takes over as PID 1** — This isn't supervisord. It's [s6-overlay](https://github.com/just-containers/s6-overlay), purpose-built for Docker. Supervises CloudCLI, Xvfb, Claude session sync, and optional `sshd` when you explicitly enable it. Auto-restarts on crash. Forwards signals. Reaps zombies. Shuts down gracefully.
 
 4. **CloudCLI serves the web UI** — Port 3001. Browser-based interface to Claude Code with project management, multiple sessions, and plugins (project stats + web terminal included).
 
@@ -941,6 +969,58 @@ Both give you:
 - Encrypted transport end to end
 - Real identity-based auth (not a shared password)
 - Audit logs
+
+### Optional SSH and Mosh
+
+HolyClaude also ships `sshd` and Mosh for people who want a direct terminal from a phone, laptop, NAS, or VPN connection. It is off by default. Nothing listens on port `22` unless you enable it.
+
+This is a remote shell into the same container that holds your `/workspace` and Claude state. Treat it like SSH to your dev box:
+
+- key-only login as `claude`
+- no password auth
+- no root login
+- no `authorized_keys` under `.claude` or `/workspace`
+- no public internet port forwarding
+
+Safe setup shape:
+
+```yaml
+services:
+  holyclaude:
+    ports:
+      - "127.0.0.1:2222:22"
+      - "127.0.0.1:60000-60010:60000-60010/udp"
+    volumes:
+      - ./data/ssh/authorized_keys:/run/holyclaude-ssh/authorized_keys:ro
+      - holyclaude-ssh:/var/lib/holyclaude-ssh
+    environment:
+      - HOLYCLAUDE_SSH_ENABLE=true
+      - HOLYCLAUDE_MOSH_ENABLE=true
+
+volumes:
+  holyclaude-ssh:
+```
+
+Prepare the public key file on the host:
+
+```bash
+mkdir -p data/ssh
+cp ~/.ssh/id_ed25519.pub data/ssh/authorized_keys
+```
+
+Connect over SSH:
+
+```bash
+ssh -p 2222 claude@127.0.0.1
+```
+
+Connect over Mosh when UDP is reachable:
+
+```bash
+mosh --ssh="ssh -p 2222" -p 60000:60010 claude@127.0.0.1
+```
+
+Bind those ports to localhost, a VPN interface, or a firewall-restricted address. If you change `127.0.0.1` to `0.0.0.0`, you are taking responsibility for that exposure.
 
 ### If you insist on exposing it directly (please don't)
 

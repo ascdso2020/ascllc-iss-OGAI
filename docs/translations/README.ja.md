@@ -540,7 +540,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `imagemagick` | 画像変換（`convert`、`identify`、`mogrify`） |
 | `chromium` | ヘッドレスブラウザ — スクリーンショット、Playwright、Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | データベースへの直接アクセス |
-| `openssh-client` | SSH 接続 |
+| `openssh-client`, `openssh-server`, `mosh` | 外部への SSH と、コンテナへの任意の SSH/Mosh アクセス |
 
 </details>
 

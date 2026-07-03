@@ -540,7 +540,7 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | `imagemagick` | Конвертация изображений (`convert`, `identify`, `mogrify`) |
 | `chromium` | Безголовый браузер — скриншоты, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | Прямое обращение к базам данных |
-| `openssh-client` | SSH-подключение |
+| `openssh-client`, `openssh-server`, `mosh` | Исходящий SSH и опциональный SSH/Mosh-доступ в контейнер |
 
 </details>
 

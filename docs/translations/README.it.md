@@ -540,7 +540,7 @@ Questo non è un container minimale. Questa è un'intera workstation di sviluppo
 | `imagemagick` | Conversione immagini (`convert`, `identify`, `mogrify`) |
 | `chromium` | Browser headless — screenshot, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | Interfaccia diretta con database |
-| `openssh-client` | SSH verso altri sistemi |
+| `openssh-client`, `openssh-server`, `mosh` | SSH in uscita e accesso SSH/Mosh opzionale al container |
 
 </details>
 

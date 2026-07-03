@@ -38,6 +38,183 @@ chown_if_root() {
     fi
 }
 
+is_truthy() {
+    case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+        true|1|yes|on) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+is_unsafe_ssh_state_path() {
+    case "$1" in
+        "$CLAUDE_HOME"|"$CLAUDE_HOME"/*|"$WORKSPACE_DIR"|"$WORKSPACE_DIR"/*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+is_valid_port() {
+    case "$1" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    [ "$1" -ge 1 ] && [ "$1" -le 65535 ]
+}
+
+is_read_only_mount_path() {
+    command -v findmnt >/dev/null 2>&1 || return 1
+    findmnt -no OPTIONS -T "$1" 2>/dev/null | tr ',' '\n' | grep -Fxq ro
+}
+
+disable_sshd_service() {
+    rm -f /etc/s6-overlay/s6-rc.d/user/contents.d/sshd 2>/dev/null || true
+}
+
+configure_remote_shell() {
+    SSHD_MARKER="/etc/s6-overlay/s6-rc.d/user/contents.d/sshd"
+    MOSH_ENV="/run/holyclaude-ssh/mosh.env"
+    SSH_AUTH_KEYS_DIR="/etc/ssh/authorized_keys"
+    SSH_AUTH_KEYS_TARGET="$SSH_AUTH_KEYS_DIR/claude"
+    SSHD_CONFIG="/etc/ssh/sshd_config_holyclaude"
+
+    disable_sshd_service
+    rm -f "$MOSH_ENV" 2>/dev/null || true
+
+    if ! is_truthy "${HOLYCLAUDE_SSH_ENABLE:-false}"; then
+        return 0
+    fi
+
+    if [ "$RUNNING_AS_ROOT" != "1" ]; then
+        echo "[entrypoint] WARNING: HOLYCLAUDE_SSH_ENABLE requires root startup; SSH stays disabled"
+        return 0
+    fi
+
+    SSH_AUTH_KEYS_SOURCE="${HOLYCLAUDE_SSH_AUTHORIZED_KEYS:-/run/holyclaude-ssh/authorized_keys}"
+    case "$SSH_AUTH_KEYS_SOURCE" in
+        /*) ;;
+        *)
+            echo "[entrypoint] WARNING: HOLYCLAUDE_SSH_AUTHORIZED_KEYS must be an absolute path; SSH stays disabled"
+            return 0
+            ;;
+    esac
+
+    if is_unsafe_ssh_state_path "$SSH_AUTH_KEYS_SOURCE"; then
+        echo "[entrypoint] WARNING: refusing SSH authorized_keys from $SSH_AUTH_KEYS_SOURCE; use a separate read-only mount"
+        return 0
+    fi
+
+    if [ ! -s "$SSH_AUTH_KEYS_SOURCE" ]; then
+        echo "[entrypoint] WARNING: SSH enabled but $SSH_AUTH_KEYS_SOURCE is missing or empty; SSH stays disabled"
+        return 0
+    fi
+
+    if ! is_read_only_mount_path "$SSH_AUTH_KEYS_SOURCE"; then
+        echo "[entrypoint] WARNING: SSH authorized_keys source must be mounted read-only; SSH stays disabled"
+        return 0
+    fi
+
+    if run_as_claude test -w "$SSH_AUTH_KEYS_SOURCE"; then
+        echo "[entrypoint] WARNING: SSH authorized_keys source is writable by claude; mount it read-only outside .claude and /workspace"
+        return 0
+    fi
+
+    SSH_KEYS_TMP="$(mktemp)"
+    grep -Ev '^[[:space:]]*(#|$)' "$SSH_AUTH_KEYS_SOURCE" > "$SSH_KEYS_TMP" || true
+
+    if [ ! -s "$SSH_KEYS_TMP" ]; then
+        echo "[entrypoint] WARNING: SSH authorized_keys has no public keys; SSH stays disabled"
+        rm -f "$SSH_KEYS_TMP"
+        return 0
+    fi
+
+    if grep -q 'PRIVATE KEY' "$SSH_KEYS_TMP"; then
+        echo "[entrypoint] WARNING: SSH authorized_keys appears to contain private key material; SSH stays disabled"
+        rm -f "$SSH_KEYS_TMP"
+        return 0
+    fi
+
+    if grep -Evq '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521)|sk-ssh-ed25519@openssh.com|sk-ecdsa-sha2-nistp256@openssh.com|ssh-ed25519-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ecdsa-sha2-nistp(256|384|521)-cert-v01@openssh.com|sk-ssh-ed25519-cert-v01@openssh.com|sk-ecdsa-sha2-nistp256-cert-v01@openssh.com)[[:space:]]' "$SSH_KEYS_TMP"; then
+        echo "[entrypoint] WARNING: SSH authorized_keys contains unsupported key lines; SSH stays disabled"
+        rm -f "$SSH_KEYS_TMP"
+        return 0
+    fi
+
+    SSH_HOST_KEYS_DIR="${HOLYCLAUDE_SSH_HOST_KEYS_DIR:-/var/lib/holyclaude-ssh/host_keys}"
+    case "$SSH_HOST_KEYS_DIR" in
+        /*) ;;
+        *)
+            echo "[entrypoint] WARNING: HOLYCLAUDE_SSH_HOST_KEYS_DIR must be an absolute path; SSH stays disabled"
+            rm -f "$SSH_KEYS_TMP"
+            return 0
+            ;;
+    esac
+
+    if is_unsafe_ssh_state_path "$SSH_HOST_KEYS_DIR"; then
+        echo "[entrypoint] WARNING: refusing SSH host keys under $SSH_HOST_KEYS_DIR; use a separate root-owned SSH state path"
+        rm -f "$SSH_KEYS_TMP"
+        return 0
+    fi
+
+    install -d -m 0755 -o root -g root "$SSH_AUTH_KEYS_DIR"
+    install -m 0644 -o root -g root "$SSH_KEYS_TMP" "$SSH_AUTH_KEYS_TARGET"
+    rm -f "$SSH_KEYS_TMP"
+
+    install -d -m 0700 -o root -g root "$SSH_HOST_KEYS_DIR"
+    if [ ! -s "$SSH_HOST_KEYS_DIR/ssh_host_ed25519_key" ]; then
+        ssh-keygen -q -t ed25519 -N '' -f "$SSH_HOST_KEYS_DIR/ssh_host_ed25519_key"
+    fi
+    if [ ! -s "$SSH_HOST_KEYS_DIR/ssh_host_rsa_key" ]; then
+        ssh-keygen -q -t rsa -b 3072 -N '' -f "$SSH_HOST_KEYS_DIR/ssh_host_rsa_key"
+    fi
+    chown root:root "$SSH_HOST_KEYS_DIR"/ssh_host_*_key "$SSH_HOST_KEYS_DIR"/ssh_host_*_key.pub 2>/dev/null || true
+    chmod 0600 "$SSH_HOST_KEYS_DIR"/ssh_host_*_key 2>/dev/null || true
+    chmod 0644 "$SSH_HOST_KEYS_DIR"/ssh_host_*_key.pub 2>/dev/null || true
+
+    install -d -m 0755 -o root -g root /run/sshd /run/holyclaude-ssh
+
+    cat > "$SSHD_CONFIG" <<EOF
+Port 22
+ListenAddress 0.0.0.0
+Protocol 2
+HostKey $SSH_HOST_KEYS_DIR/ssh_host_ed25519_key
+HostKey $SSH_HOST_KEYS_DIR/ssh_host_rsa_key
+PidFile /run/sshd.pid
+AuthorizedKeysFile /etc/ssh/authorized_keys/%u
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+AllowUsers claude
+X11Forwarding no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitTunnel no
+GatewayPorts no
+UsePAM yes
+PrintMotd no
+Subsystem sftp internal-sftp
+EOF
+    chmod 0644 "$SSHD_CONFIG"
+
+    if is_truthy "${HOLYCLAUDE_MOSH_ENABLE:-false}"; then
+        MOSH_START="${HOLYCLAUDE_MOSH_UDP_START:-60000}"
+        MOSH_END="${HOLYCLAUDE_MOSH_UDP_END:-60010}"
+        if ! is_valid_port "$MOSH_START" || ! is_valid_port "$MOSH_END" || [ "$MOSH_START" -gt "$MOSH_END" ]; then
+            echo "[entrypoint] WARNING: invalid Mosh UDP range; Mosh stays disabled"
+        else
+            cat > "$MOSH_ENV" <<EOF
+HOLYCLAUDE_MOSH_ENABLE=true
+HOLYCLAUDE_MOSH_UDP_START=$MOSH_START
+HOLYCLAUDE_MOSH_UDP_END=$MOSH_END
+EOF
+            chmod 0644 "$MOSH_ENV"
+        fi
+    fi
+
+    touch "$SSHD_MARKER"
+    echo "[entrypoint] SSH enabled: key-only login as claude on container port 22"
+}
+
 # ---------- UID/GID remapping ----------
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
@@ -222,6 +399,9 @@ if [ -n "$DESLOPPIFY_SETUP" ] && [ "$DESLOPPIFY_SETUP" != "off" ]; then
         fi
     done
 fi
+
+# ---------- Optional SSH/Mosh remote shell ----------
+configure_remote_shell
 
 # ---------- Hand off to s6-overlay ----------
 echo "[entrypoint] Starting s6-overlay..."

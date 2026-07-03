@@ -1,0 +1,3 @@
+#!/command/with-contenv sh
+# shellcheck shell=sh
+exec /usr/sbin/sshd -D -e -f /etc/ssh/sshd_config_holyclaude

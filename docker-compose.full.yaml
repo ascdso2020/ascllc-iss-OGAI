@@ -28,9 +28,16 @@ services:
       # - "127.0.0.1:8787:8787"  # Wrangler dev
       # - "127.0.0.1:9229:9229"  # Node.js debugger
       # - "127.0.0.1:1455:1455"  # Codex auth callback port
+      # - "127.0.0.1:2222:22"    # Optional SSH, localhost/VPN only
+      # - "127.0.0.1:60000-60010:60000-60010/udp"  # Optional Mosh UDP range
     volumes:
       - ${HOLYCLAUDE_HOST_CLAUDE_DIR:-./data/claude}:/home/claude/.claude
       - ${HOLYCLAUDE_HOST_WORKSPACE_DIR:-./workspace}:/workspace
+      # --- Optional SSH/Mosh remote shell state ---
+      # Keep authorized_keys outside .claude and /workspace. Mount it read-only.
+      # - ./data/ssh/authorized_keys:/run/holyclaude-ssh/authorized_keys:ro
+      # Persist host keys if you do not want SSH fingerprints to change after recreate.
+      # - holyclaude-ssh:/var/lib/holyclaude-ssh
     environment:
       # --- Required ---
       - TZ=UTC                                    # Your timezone (e.g., America/New_York)
@@ -82,3 +89,16 @@ services:
       # Valid: off, all, claude, codex, gemini, opencode, or comma-separated subsets.
       # all expands to claude,codex,gemini. opencode is full-image only.
       # - HOLYCLAUDE_DESLOPPIFY_SETUP=off
+
+      # --- SSH/Mosh remote shell (optional, disabled by default) ---
+      # Keep this behind localhost, VPN, Tailscale, or a firewall. Do not publish
+      # SSH/Mosh directly to the public internet.
+      # - HOLYCLAUDE_SSH_ENABLE=false
+      # - HOLYCLAUDE_SSH_AUTHORIZED_KEYS=/run/holyclaude-ssh/authorized_keys
+      # - HOLYCLAUDE_SSH_HOST_KEYS_DIR=/var/lib/holyclaude-ssh/host_keys
+      # - HOLYCLAUDE_MOSH_ENABLE=false
+      # - HOLYCLAUDE_MOSH_UDP_START=60000
+      # - HOLYCLAUDE_MOSH_UDP_END=60010
+
+# volumes:
+#   holyclaude-ssh:

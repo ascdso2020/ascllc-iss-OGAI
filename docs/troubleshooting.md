@@ -6,6 +6,77 @@ Solutions to common issues when running HolyClaude.
 
 ## Common Issues
 
+### SSH does not start
+
+**Symptom:** `HOLYCLAUDE_SSH_ENABLE=true` is set, but port `22` is not listening inside the container.
+
+**Cause:** SSH fails closed when the public-key file is missing, empty, writable by `claude`, or mounted from an unsafe path such as `/home/claude/.claude` or `/workspace`.
+
+**Fix:** Mount a separate read-only public-key file:
+```yaml
+volumes:
+  - ./data/ssh/authorized_keys:/run/holyclaude-ssh/authorized_keys:ro
+environment:
+  - HOLYCLAUDE_SSH_ENABLE=true
+```
+
+Create it from a public key, not a private key:
+```bash
+mkdir -p data/ssh
+cp ~/.ssh/id_ed25519.pub data/ssh/authorized_keys
+```
+
+Then recreate the container:
+```bash
+docker compose up -d
+```
+
+---
+
+### Mosh connects over SSH but cannot reach the session
+
+**Symptom:** SSH works, but Mosh hangs after authentication or reports that it cannot contact the server.
+
+**Cause:** Mosh uses SSH to start `mosh-server`, then switches to UDP. The default HolyClaude example uses UDP `60000-60010`. If that range is not mapped and reachable, the SSH part can work while the Mosh session cannot.
+
+**Fix:** Enable Mosh and map the UDP range:
+```yaml
+ports:
+  - "127.0.0.1:2222:22"
+  - "127.0.0.1:60000-60010:60000-60010/udp"
+environment:
+  - HOLYCLAUDE_SSH_ENABLE=true
+  - HOLYCLAUDE_MOSH_ENABLE=true
+```
+
+Connect with the same range:
+```bash
+mosh --ssh="ssh -p 2222" -p 60000:60010 claude@127.0.0.1
+```
+
+Keep the UDP range behind localhost, VPN, Tailscale, or a firewall rule.
+
+---
+
+### SSH host key changed after container recreate
+
+**Symptom:** Your SSH client warns that the host identification changed.
+
+**Cause:** SSH host keys live in `/var/lib/holyclaude-ssh/host_keys`. If that path is not backed by a named volume or bind mount, recreating the container can generate new host keys.
+
+**Fix:** Add the SSH state volume:
+```yaml
+volumes:
+  - holyclaude-ssh:/var/lib/holyclaude-ssh
+
+volumes:
+  holyclaude-ssh:
+```
+
+If the old container was trusted and expected to be replaced, remove the old host key from your SSH client's `known_hosts` entry for that host and port.
+
+---
+
 ### CloudCLI shows wrong default directory
 
 **Symptom:** CloudCLI web UI opens to `/home/claude` instead of `/workspace`.

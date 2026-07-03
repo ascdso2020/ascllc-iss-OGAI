@@ -1,22 +1,45 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 IMAGE="${1:?usage: docker_persistence_smoke.sh <image> [label]}"
 LABEL="${2:-local}"
 SAVE_TIMEOUT="${HOLYCLAUDE_PERSIST_SMOKE_TIMEOUT:-180}"
 SYNC_INTERVAL="${HOLYCLAUDE_PERSIST_SMOKE_INTERVAL:-5}"
-TMP_DIR="$(mktemp -d)"
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    WINDOWS_SHELL=1
+    TMP_PARENT="${HOLYCLAUDE_SMOKE_TMPDIR:-$PWD/.tmp}"
+    mkdir -p "$TMP_PARENT"
+    TMP_DIR="$(mktemp -d "$TMP_PARENT/holyclaude-persist.XXXXXX")"
+    ;;
+  *)
+    WINDOWS_SHELL=0
+    TMP_DIR="$(mktemp -d)"
+    ;;
+esac
 CONTAINER="holyclaude-persist-${LABEL}-$$"
 
+docker_bind_source() {
+  if [ "$WINDOWS_SHELL" = "1" ] && command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+  else
+    printf '%s' "$1"
+  fi
+}
+
+docker_cmd() {
+  MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' docker "$@"
+}
+
 dump_debug() {
-  if docker ps -a --format '{{.Names}}' | grep -Fxq "$CONTAINER"; then
+  if docker_cmd ps -a --format '{{.Names}}' | grep -Fxq "$CONTAINER"; then
     echo "::group::holyclaude persistence container logs"
-    docker logs "$CONTAINER" || true
+    docker_cmd logs "$CONTAINER" || true
     echo "::endgroup::"
 
     echo "::group::holyclaude persistence container state"
-    docker exec "$CONTAINER" sh -lc 'ls -la /home/claude /home/claude/.claude 2>/dev/null || true' || true
-    docker exec -i "$CONTAINER" node - <<'NODE' || true
+    docker_cmd exec "$CONTAINER" sh -lc 'ls -la /home/claude /home/claude/.claude 2>/dev/null || true' || true
+    docker_cmd exec -i "$CONTAINER" node - <<'NODE' || true
 const fs = require('node:fs');
 for (const file of ['/home/claude/.claude.json', '/home/claude/.claude/.claude.json.persist']) {
   try {
@@ -56,7 +79,7 @@ NODE
 }
 
 cleanup() {
-  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+  docker_cmd rm -f "$CONTAINER" >/dev/null 2>&1 || true
   rm -rf "$TMP_DIR"
 }
 
@@ -66,6 +89,8 @@ trap cleanup EXIT
 CLAUDE_DIR="$TMP_DIR/claude"
 WORKSPACE_DIR="$TMP_DIR/workspace"
 mkdir -p "$CLAUDE_DIR" "$WORKSPACE_DIR"
+CLAUDE_MOUNT="$(docker_bind_source "$CLAUDE_DIR")"
+WORKSPACE_MOUNT="$(docker_bind_source "$WORKSPACE_DIR")"
 
 write_json() {
   local target="$1"
@@ -88,7 +113,7 @@ NODE
 
 assert_container_state() {
   local expected_email="$1"
-  docker exec -i "$CONTAINER" node - "$expected_email" <<'NODE'
+  docker_cmd exec -i "$CONTAINER" node - "$expected_email" <<'NODE'
 const fs = require('node:fs');
 const [expectedEmail] = process.argv.slice(2);
 const data = JSON.parse(fs.readFileSync('/home/claude/.claude.json', 'utf8'));
@@ -127,7 +152,7 @@ wait_for_host_persisted_state() {
 }
 
 assert_container_default_state() {
-  docker exec -i "$CONTAINER" node - <<'NODE'
+  docker_cmd exec -i "$CONTAINER" node - <<'NODE'
 const fs = require('node:fs');
 const data = JSON.parse(fs.readFileSync('/home/claude/.claude.json', 'utf8'));
 if (data.hasCompletedOnboarding !== true || data.installMethod !== 'native') {
@@ -163,13 +188,13 @@ wait_for_container_default_state() {
 }
 
 start_container() {
-  docker run -d \
+  docker_cmd run -d \
     --name "$CONTAINER" \
     -e PUID="$(id -u)" \
     -e PGID="$(id -g)" \
     -e HOLYCLAUDE_CLAUDE_JSON_SYNC_INTERVAL="$SYNC_INTERVAL" \
-    -v "$CLAUDE_DIR:/home/claude/.claude" \
-    -v "$WORKSPACE_DIR:/workspace" \
+    --mount "type=bind,source=$CLAUDE_MOUNT,target=/home/claude/.claude" \
+    --mount "type=bind,source=$WORKSPACE_MOUNT,target=/workspace" \
     "$IMAGE" >/dev/null
 }
 
@@ -178,7 +203,7 @@ write_json "$CLAUDE_DIR/.claude.json.persist" "persisted-before-start@example.in
 start_container
 wait_for_container_state "persisted-before-start@example.invalid"
 
-docker exec -i "$CONTAINER" node - <<'NODE'
+docker_cmd exec -i "$CONTAINER" node - <<'NODE'
 const fs = require('node:fs');
 fs.writeFileSync('/home/claude/.claude.json', JSON.stringify({
   projects: {
@@ -194,17 +219,17 @@ NODE
 
 wait_for_host_persisted_state "runtime-saved@example.invalid"
 
-docker rm -f "$CONTAINER" >/dev/null
+docker_cmd rm -f "$CONTAINER" >/dev/null
 start_container
 wait_for_container_state "runtime-saved@example.invalid"
-docker rm -f "$CONTAINER" >/dev/null
+docker_cmd rm -f "$CONTAINER" >/dev/null
 
 printf '{not json' > "$CLAUDE_DIR/.claude.json.persist"
 start_container
 wait_for_container_default_state
 
 if ! find "$CLAUDE_DIR" -maxdepth 1 -name '.claude.json.persist.invalid.*' | grep -q .; then
-  docker logs "$CONTAINER" || true
+  docker_cmd logs "$CONTAINER" || true
   echo "expected invalid persisted backup" >&2
   exit 1
 fi

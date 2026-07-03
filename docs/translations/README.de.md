@@ -540,7 +540,7 @@ Das ist kein minimaler Container. Das ist eine komplette Entwicklungsumgebung.
 | `imagemagick` | Bildkonvertierung (`convert`, `identify`, `mogrify`) |
 | `chromium` | Headless-Browser — Screenshots, Playwright, Lighthouse |
 | `psql`, `redis-cli`, `sqlite3` | Direkt mit Datenbanken kommunizieren |
-| `openssh-client` | SSH in andere Systeme |
+| `openssh-client`, `openssh-server`, `mosh` | SSH heraus und optionaler SSH/Mosh-Zugriff in den Container |
 
 </details>
 

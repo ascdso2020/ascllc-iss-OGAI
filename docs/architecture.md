@@ -20,6 +20,7 @@ HolyClaude is a single Docker container running multiple supervised services. Th
 │    │     ├── Copy CLAUDE.md (memory)             │
 │    │     ├── Configure git                       │
 │    │     └── Create sentinel file                │
+│    ├── Optional SSH/Mosh setup                   │
 │    └── exec /init (s6-overlay)                   │
 │                                                  │
 │  s6-overlay (PID 1)                              │
@@ -27,8 +28,10 @@ HolyClaude is a single Docker container running multiple supervised services. Th
 │    │     └── cloudcli --port 3001                │
 │    ├── persist-claude-json (longrun)             │
 │    │     └── save ~/.claude.json on start + 60s  │
-│    └── xvfb (longrun)                            │
-│          └── Xvfb :99 -screen 0 1920x1080x24    │
+│    ├── xvfb (longrun)                            │
+│    │     └── Xvfb :99 -screen 0 1920x1080x24    │
+│    └── sshd (optional longrun)                   │
+│          └── /usr/sbin/sshd -D -e               │
 │                                                  │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
 │  │ Claude   │  │ Chromium │  │ Dev Tools    │   │
@@ -59,7 +62,9 @@ Runs every time the container starts. Responsibilities:
 
 5. **Optional Desloppify setup** — Reads `HOLYCLAUDE_DESLOPPIFY_SETUP` after bootstrap and before s6 starts. Setup runs as the `claude` user and only writes global agent skill files for the requested interface. It does not scan `/workspace` or create project-level `.desloppify/` state.
 
-6. **Handoff** — `exec /init` replaces the entrypoint process with s6-overlay, which becomes PID 1.
+6. **Optional SSH/Mosh setup** — Reads `HOLYCLAUDE_SSH_ENABLE` and only adds the `sshd` service to the s6 user bundle when a safe read-only `authorized_keys` file is mounted outside `.claude` and `/workspace`. Mosh is package-only until an SSH session launches `mosh-server`.
+
+7. **Handoff** — `exec /init` replaces the entrypoint process with s6-overlay, which becomes PID 1.
 
 The Claude session bridge is HolyClaude startup behavior. It does not update CloudCLI and does not replace the Docker update path.
 
@@ -130,6 +135,19 @@ exec Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp
 - Provides a virtual display at `:99` (1920x1080, 24-bit color)
 - Required for Chromium, Playwright, Lighthouse — they need a display even in headless mode
 - `-nolisten tcp` prevents remote X connections (security)
+
+### Optional SSH Service
+
+`sshd` is present in the image, but it is not in the s6 user bundle by default. The entrypoint adds it only when `HOLYCLAUDE_SSH_ENABLE=true` and the key file checks pass.
+
+The runtime setup:
+
+- rejects `authorized_keys` under `/home/claude/.claude`, `/home/claude`, or `/workspace`
+- copies public keys from `/run/holyclaude-ssh/authorized_keys` into a root-owned `/etc/ssh/authorized_keys/claude`
+- generates or reuses host keys under `/var/lib/holyclaude-ssh/host_keys`
+- writes a hardened `sshd_config` with password auth and root login disabled
+
+Mosh is not a daemon. The `mosh-server` wrapper reads `/run/holyclaude-ssh/mosh.env`, then launches the real server only when `HOLYCLAUDE_MOSH_ENABLE=true`.
 
 ---
 

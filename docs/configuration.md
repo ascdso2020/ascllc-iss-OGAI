@@ -60,6 +60,42 @@ Only needed if your volumes are on a network share (Samba, NAS, etc.):
 | `CHOKIDAR_USEPOLLING` | (unset) | Set to `1` — enables polling for file watchers |
 | `WATCHFILES_FORCE_POLLING` | (unset) | Set to `true` — enables polling for Python watchers |
 
+### SSH and Mosh Remote Shell
+
+SSH and Mosh are installed in both variants, but the server path is closed by default. Nothing listens on port `22` unless you set `HOLYCLAUDE_SSH_ENABLE=true` and mount a valid public-key file from a safe location.
+
+Do not put SSH authorization files under `/home/claude/.claude`, `/home/claude`, or `/workspace`. Those paths are writable runtime state. Use a separate read-only mount.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOLYCLAUDE_SSH_ENABLE` | `false` | Enables the optional `sshd` service |
+| `HOLYCLAUDE_SSH_AUTHORIZED_KEYS` | `/run/holyclaude-ssh/authorized_keys` | Public-key file copied into a root-owned `AuthorizedKeysFile` path before `sshd` starts |
+| `HOLYCLAUDE_SSH_HOST_KEYS_DIR` | `/var/lib/holyclaude-ssh/host_keys` | Root-owned host-key directory. Mount `/var/lib/holyclaude-ssh` to keep SSH fingerprints stable after recreate |
+| `HOLYCLAUDE_MOSH_ENABLE` | `false` | Allows `mosh-server` for SSH sessions |
+| `HOLYCLAUDE_MOSH_UDP_START` | `60000` | First UDP port Mosh may use |
+| `HOLYCLAUDE_MOSH_UDP_END` | `60010` | Last UDP port Mosh may use |
+
+Compose example:
+
+```yaml
+services:
+  holyclaude:
+    ports:
+      - "127.0.0.1:2222:22"
+      - "127.0.0.1:60000-60010:60000-60010/udp"
+    volumes:
+      - ./data/ssh/authorized_keys:/run/holyclaude-ssh/authorized_keys:ro
+      - holyclaude-ssh:/var/lib/holyclaude-ssh
+    environment:
+      - HOLYCLAUDE_SSH_ENABLE=true
+      - HOLYCLAUDE_MOSH_ENABLE=true
+
+volumes:
+  holyclaude-ssh:
+```
+
+Keep these ports bound to localhost, a VPN interface, Tailscale, or a firewall-restricted address. Public SSH/Mosh exposure is not a supported default.
+
 ### Rootless Podman
 
 For Fedora or another SELinux host running rootless Podman, use:
@@ -157,6 +193,8 @@ Manual upstream-supported setup targets are available through Desloppify itself:
 |-----------|---------------|---------|
 | `./data/claude` | `/home/claude/.claude` | Settings, credentials, memory, API tokens |
 | `./workspace` | `/workspace` | Your code and projects |
+| `./data/ssh/authorized_keys` | `/run/holyclaude-ssh/authorized_keys` | Optional read-only SSH public keys file |
+| `holyclaude-ssh` | `/var/lib/holyclaude-ssh` | Optional named volume for stable SSH host keys |
 
 ### What's inside `./data/claude`:
 
@@ -175,6 +213,8 @@ Manual upstream-supported setup targets are available through Desloppify itself:
 | Port | Service | Default State |
 |------|---------|--------------|
 | `127.0.0.1:3001` | CloudCLI web UI | Exposed on the Docker host only |
+| `127.0.0.1:2222 -> 22` | Optional SSH | Commented out |
+| `127.0.0.1:60000-60010/udp` | Optional Mosh UDP range | Commented out |
 | `3000` | Dev server (Next.js, Express) | Commented out |
 | `4321` | Astro dev server | Commented out |
 | `5173` | Vite dev server | Commented out |
