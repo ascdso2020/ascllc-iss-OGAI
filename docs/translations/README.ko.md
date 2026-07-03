@@ -455,8 +455,8 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | 변수 | 기본값 | 역할 |
 |----------|---------|--------------|
 | `TZ` | `UTC` | 컨테이너 시간대 |
-| `PUID` | `1000` | 컨테이너 사용자 ID — 권한 문제를 피하려면 호스트와 일치시킬 것 |
-| `PGID` | `1000` | 컨테이너 그룹 ID — 권한 문제를 피하려면 호스트와 일치시킬 것 |
+| `PUID` | `1000` | Docker 방식 컨테이너 사용자 ID; rootless Podman은 `docker-compose.podman-rootless.yaml` 사용 |
+| `PGID` | `1000` | Docker 방식 컨테이너 그룹 ID; rootless Podman은 `docker-compose.podman-rootless.yaml` 사용 |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js 힙 메모리 한도 (MB) |
 | `GIT_USER_NAME` | `HolyClaude User` | Git 커밋 작성자 (첫 부팅 시 한 번 설정) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git 커밋 이메일 (첫 부팅 시 한 번 설정) |
@@ -948,7 +948,7 @@ docker compose up -d
 `latest` 대신 특정 버전을 고정하려면:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

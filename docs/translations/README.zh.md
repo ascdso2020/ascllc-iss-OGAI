@@ -455,8 +455,8 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | 变量 | 默认值 | 功能 |
 |----------|---------|--------------|
 | `TZ` | `UTC` | 容器时区 |
-| `PUID` | `1000` | 容器用户 ID，与宿主机匹配以避免权限问题 |
-| `PGID` | `1000` | 容器用户组 ID，与宿主机匹配以避免权限问题 |
+| `PUID` | `1000` | Docker 式容器用户 ID；rootless Podman 使用 `docker-compose.podman-rootless.yaml` |
+| `PGID` | `1000` | Docker 式容器用户组 ID；rootless Podman 使用 `docker-compose.podman-rootless.yaml` |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js 堆内存上限（MB） |
 | `GIT_USER_NAME` | `HolyClaude User` | Git 提交作者（首次启动时设置一次） |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git 提交邮箱（首次启动时设置一次） |
@@ -948,7 +948,7 @@ docker compose up -d
 如果想固定到特定版本而非 `latest`：
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

@@ -4,6 +4,17 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.1] - 07/02/2026
+
+### Added
+- Added a rootless Podman compose profile for Fedora and other SELinux hosts using `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` volume labels.
+
+### Changed
+- Clarified that `PUID`/`PGID` is Docker-style UID/GID remapping and does not control rootless Podman's host-visible subordinate UID mapping by itself.
+
+### Fixed
+- Allowed startup to continue when rootless Podman already runs the container as the target user, skipping root-only UID/GID remaps, ownership repairs, and the CloudCLI `s6-setuidgid` privilege drop in that mode.
+
 ## [1.4.0] - 07/02/2026
 
 ### Changed

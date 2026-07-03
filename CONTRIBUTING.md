@@ -64,7 +64,8 @@ If you're adding a new tool or package, decide which variant it belongs to. Full
 | `Dockerfile` | Single-stage build with full/slim split via `VARIANT` build arg |
 | `docker-compose.yaml` | Minimal quick-start compose |
 | `docker-compose.full.yaml` | Full compose with all options documented |
-| `scripts/entrypoint.sh` | UID/GID remapping, workspace fix, triggers bootstrap, hands off to s6-overlay |
+| `docker-compose.podman-rootless.yaml` | Rootless Podman keep-id compose for SELinux hosts |
+| `scripts/entrypoint.sh` | UID/GID remapping, workspace fix, rootless Podman keep-id startup, triggers bootstrap, hands off to s6-overlay |
 | `scripts/bootstrap.sh` | First-boot only: copies settings and memory template, configures git |
 | `scripts/notify.py` | Apprise notification helper for stop/error hooks |
 | `config/settings.json` | Default Claude Code settings baked into the image |

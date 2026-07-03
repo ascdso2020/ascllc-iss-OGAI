@@ -455,8 +455,8 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | Variable | Default | यह क्या करता है |
 |----------|---------|--------------|
 | `TZ` | `UTC` | Container timezone |
-| `PUID` | `1000` | Container user ID — permission issues से बचने के लिए अपने host से मिलाएं |
-| `PGID` | `1000` | Container group ID — permission issues से बचने के लिए अपने host से मिलाएं |
+| `PUID` | `1000` | Docker-style container user ID; rootless Podman के लिए `docker-compose.podman-rootless.yaml` इस्तेमाल करें |
+| `PGID` | `1000` | Docker-style container group ID; rootless Podman के लिए `docker-compose.podman-rootless.yaml` इस्तेमाल करें |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js heap memory limit in MB |
 | `GIT_USER_NAME` | `HolyClaude User` | Git commit author (पहले boot पर एक बार सेट) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git commit email (पहले boot पर एक बार सेट) |
@@ -948,7 +948,7 @@ Container के अंदर `cloudcli update` या `npm install -g @cloudcli
 `latest` के बजाय specific version pin करने के लिए:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

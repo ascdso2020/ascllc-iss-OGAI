@@ -7,7 +7,7 @@ You are running inside a **HolyClaude Docker container** (full variant). Everyth
 ## Environment Overview
 
 - **OS:** Debian Bookworm (slim) inside Docker
-- **User:** `claude` (UID/GID configurable via PUID/PGID)
+- **User:** `claude` (Docker UID/GID configurable via PUID/PGID; rootless Podman uses keep-id)
 - **Working directory:** `/workspace` (bind-mounted from host)
 - **Home directory:** `/home/claude`
 - **Persistent storage:** `~/.claude/` is bind-mounted — settings, credentials, and this file survive container rebuilds

@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================================================
-# HolyClaude — First-Boot Bootstrap
+# HolyClaude - First-Boot Bootstrap
 # Runs once on first container start, then creates a sentinel to skip next time.
 # Delete ~/.claude/.holyclaude-bootstrapped to re-trigger.
 # ==============================================================================
@@ -12,6 +12,26 @@ CLAUDE_USER="claude"
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
 SOURCE_DIR="/usr/local/share/holyclaude"
+export HOME="$CLAUDE_HOME"
+
+RUNNING_AS_ROOT=0
+if [ "$(id -u)" = "0" ]; then
+    RUNNING_AS_ROOT=1
+fi
+
+run_as_claude() {
+    if [ "$RUNNING_AS_ROOT" = "1" ]; then
+        runuser -u "$CLAUDE_USER" -- "$@"
+    else
+        "$@"
+    fi
+}
+
+chown_if_root() {
+    if [ "$RUNNING_AS_ROOT" = "1" ]; then
+        chown "$@"
+    fi
+}
 
 echo "[bootstrap] Running first-boot initialization..."
 
@@ -35,9 +55,9 @@ echo "[bootstrap] Copied CLAUDE.md (${VARIANT} variant)"
 # ---------- Git configuration ----------
 GIT_USER_NAME="${GIT_USER_NAME:-HolyClaude User}"
 GIT_USER_EMAIL="${GIT_USER_EMAIL:-noreply@holyclaude.local}"
-runuser -u "$CLAUDE_USER" -- git config --global safe.directory /workspace
-runuser -u "$CLAUDE_USER" -- git config --global user.name "$GIT_USER_NAME"
-runuser -u "$CLAUDE_USER" -- git config --global user.email "$GIT_USER_EMAIL"
+run_as_claude git config --global safe.directory /workspace
+run_as_claude git config --global user.name "$GIT_USER_NAME"
+run_as_claude git config --global user.email "$GIT_USER_EMAIL"
 echo "[bootstrap] Configured git as '$GIT_USER_NAME <$GIT_USER_EMAIL>'"
 
 # ---------- Codex CLI default configuration ----------
@@ -142,11 +162,11 @@ JSON
 fi
 
 # ---------- Fix ownership ----------
-chown -R "$PUID:$PGID" "$CLAUDE_HOME/.claude" 2>/dev/null || true
-chown "$PUID:$PGID" "$CLAUDE_HOME/.claude.json" 2>/dev/null || true
+chown_if_root -R "$PUID:$PGID" "$CLAUDE_HOME/.claude" 2>/dev/null || true
+chown_if_root "$PUID:$PGID" "$CLAUDE_HOME/.claude.json" 2>/dev/null || true
 
 # ---------- Create sentinel ----------
 touch "$CLAUDE_HOME/.claude/.holyclaude-bootstrapped"
-chown "$PUID:$PGID" "$CLAUDE_HOME/.claude/.holyclaude-bootstrapped" 2>/dev/null || true
+chown_if_root "$PUID:$PGID" "$CLAUDE_HOME/.claude/.holyclaude-bootstrapped" 2>/dev/null || true
 
 echo "[bootstrap] First-boot initialization complete."

@@ -49,7 +49,7 @@ HolyClaude is a single Docker container running multiple supervised services. Th
 
 Runs every time the container starts. Responsibilities:
 
-1. **UID/GID remapping** — Adjusts the `claude` user's UID/GID to match `PUID`/`PGID` environment variables. This prevents permission mismatches between container and host files.
+1. **UID/GID remapping** — When the container starts as root, adjusts the `claude` user's UID/GID to match `PUID`/`PGID` environment variables. When rootless Podman starts the container as the target user with `userns=keep-id`, this root-only remap is skipped.
 
 2. **Workspace ownership fix** — Repairs the top-level `/workspace` bind mount if Docker auto-created it as `root:root` on first start.
 
@@ -71,7 +71,7 @@ Runs once on first container start. Creates the sentinel file so it doesn't re-r
 2. **Memory** — Copies the variant-appropriate memory template (`claude-memory-full.md` or `claude-memory-slim.md`) to `~/.claude/CLAUDE.md`
 3. **Git** — Configures git identity from `GIT_USER_NAME`/`GIT_USER_EMAIL` env vars
 4. **Onboarding** — Uses the restored or default `~/.claude.json` created by the entrypoint session bridge
-5. **Permissions** — Fixes file ownership to match `PUID`/`PGID`
+5. **Permissions** — Fixes file ownership to match `PUID`/`PGID` only when startup has root privileges
 
 ### s6-overlay
 
@@ -94,10 +94,13 @@ cd /workspace
 export HOME=/home/claude
 export WORKSPACES_ROOT=/workspace
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--no-deprecation"
-exec s6-setuidgid claude cloudcli --port 3001
+if [ "$(id -u)" = "0" ]; then
+  exec s6-setuidgid claude cloudcli --port 3001
+fi
+exec cloudcli --port 3001
 ```
 
-- Runs as user `claude` (not root)
+- Runs as user `claude` in Docker, or as the already-mapped keep-id user in rootless Podman
 - Sets `WORKSPACES_ROOT` directly so the web UI opens at `/workspace`
 - `NODE_OPTIONS=--no-deprecation` suppresses noisy deprecation warnings
 - Managed as a `longrun` service — auto-restarts on crash
@@ -159,7 +162,7 @@ xterm.js font fallback stack, and adds the per-browser
 
 ### Why `runuser` instead of `su`?
 
-`su` uses PAM authentication, which can fail with renamed users (the base image's `node` user renamed to `claude`). `runuser` skips PAM entirely — it's designed for scripts that need to run commands as another user.
+`su` uses PAM authentication, which can fail with renamed users (the base image's `node` user renamed to `claude`). `runuser` skips PAM entirely, so it is the Docker/root startup path for commands that need to run as `claude`. In rootless Podman keep-id mode, the entrypoint is already running as UID 1000, so the helper runs those commands directly instead of calling `runuser`.
 
 ### Why no `.env` file by default?
 

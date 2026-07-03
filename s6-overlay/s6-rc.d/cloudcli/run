@@ -4,4 +4,7 @@ cd /workspace || exit 1
 export HOME=/home/claude
 export WORKSPACES_ROOT=/workspace
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--no-deprecation"
-exec s6-setuidgid claude cloudcli --port 3001
+if [ "$(id -u)" = "0" ]; then
+  exec s6-setuidgid claude cloudcli --port 3001
+fi
+exec cloudcli --port 3001

@@ -123,10 +123,10 @@ If the dry run passes but Telegram still does not receive the real test, run the
 
 **Cause:** Usually one of these:
 
-- `PUID`/`PGID` doesn't match your host user
+- Docker-style `PUID`/`PGID` doesn't match your host user
 - Docker auto-created `./workspace` as `root:root` on first start because the directory did not exist yet
 
-**Fix:** Set `PUID` and `PGID` to match your host user:
+**Fix for Docker:** Set `PUID` and `PGID` to match your host user:
 ```bash
 # On your host, check your IDs
 id -u  # This is your PUID
@@ -141,6 +141,14 @@ environment:
 ```
 
 HolyClaude also auto-fixes the top-level `/workspace` ownership on boot if Docker created it as root. If you still have permission errors after startup, the remaining mismatch is in your host files, not the container's workspace mount point.
+
+**Fix for rootless Podman on SELinux:** Use the Podman compose profile:
+```bash
+mkdir -p data/claude workspace
+podman compose -f docker-compose.podman-rootless.yaml up -d
+```
+
+Rootless Podman maps container IDs through `/etc/subuid` and `/etc/subgid` by default, so `PUID=1000` does not guarantee host-visible UID `1000`. The Podman profile uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels so host and container edits both work under the same user. Keep `:Z`; it handles SELinux labeling. Do not add `:U` to `/workspace`; it recursively rewrites host ownership for the container namespace and can make normal host editing fail.
 
 On Synology, QNAP, SMB/CIFS, and some NFS mounts, `chmod` and `chown` from inside the container may be ignored by the host filesystem. Use the NAS share settings, mount options, or matching `PUID`/`PGID` values to make `./data/claude` and `./workspace` writable.
 

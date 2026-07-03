@@ -455,8 +455,8 @@ Die vollständige Referenz. Jede Variable, ihr Standard, was sie tut.
 | Variable | Standard | Was sie tut |
 |----------|---------|--------------|
 | `TZ` | `UTC` | Container-Zeitzone |
-| `PUID` | `1000` | Container-Benutzer-ID — mit deinem Host abgleichen, um Berechtigungsprobleme zu vermeiden |
-| `PGID` | `1000` | Container-Gruppen-ID — mit deinem Host abgleichen, um Berechtigungsprobleme zu vermeiden |
+| `PUID` | `1000` | Container-Benutzer-ID fuer Docker-Remapping; rootless Podman nutzt `docker-compose.podman-rootless.yaml` |
+| `PGID` | `1000` | Container-Gruppen-ID fuer Docker-Remapping; rootless Podman nutzt `docker-compose.podman-rootless.yaml` |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js-Heap-Speichergrenze in MB |
 | `GIT_USER_NAME` | `HolyClaude User` | Git-Commit-Autor (einmalig beim ersten Start gesetzt) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git-Commit-E-Mail (einmalig beim ersten Start gesetzt) |
@@ -948,7 +948,7 @@ Führe `cloudcli update` oder `npm install -g @cloudcli-ai/cloudcli@latest` nich
 Um eine bestimmte Version statt `latest` zu fixieren:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

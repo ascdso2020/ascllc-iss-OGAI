@@ -455,8 +455,8 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | Переменная | По умолчанию | Что делает |
 |----------|---------|--------------|
 | `TZ` | `UTC` | Часовой пояс контейнера |
-| `PUID` | `1000` | ID пользователя контейнера — совпадайте с хостом, чтобы избежать проблем с правами |
-| `PGID` | `1000` | ID группы контейнера — совпадайте с хостом, чтобы избежать проблем с правами |
+| `PUID` | `1000` | ID пользователя контейнера для Docker-remap; rootless Podman использует `docker-compose.podman-rootless.yaml` |
+| `PGID` | `1000` | ID группы контейнера для Docker-remap; rootless Podman использует `docker-compose.podman-rootless.yaml` |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Лимит памяти кучи Node.js в МБ |
 | `GIT_USER_NAME` | `HolyClaude User` | Автор git-коммитов (устанавливается один раз при первом запуске) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Email git-коммитов (устанавливается один раз при первом запуске) |
@@ -948,7 +948,7 @@ docker compose up -d
 Чтобы закрепить конкретную версию вместо `latest`:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

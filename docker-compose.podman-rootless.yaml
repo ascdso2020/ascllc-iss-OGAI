@@ -1,0 +1,35 @@
+# ==============================================================================
+# HolyClaude - Rootless Podman on SELinux hosts
+# First run: mkdir -p data/claude workspace
+# Usage: podman compose -f docker-compose.podman-rootless.yaml up -d
+# Then open: http://localhost:3001
+#
+# This profile is for bidirectional host/container editing of ./workspace.
+# It uses keep-id so files created in /workspace stay owned by your host user.
+# Do not add :U to the workspace mount; :U rewrites host ownership.
+# ==============================================================================
+
+services:
+  holyclaude:
+    image: coderluii/holyclaude:latest
+    container_name: holyclaude
+    hostname: holyclaude
+    restart: unless-stopped
+    shm_size: 2g
+    userns_mode: keep-id
+    user: "1000:1000"
+    network_mode: bridge
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - ./data/claude:/home/claude/.claude:Z
+      - ./workspace:/workspace:Z
+    environment:
+      - TZ=UTC
+      - PUID=1000
+      - PGID=1000

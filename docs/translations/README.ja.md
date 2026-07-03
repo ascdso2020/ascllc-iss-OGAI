@@ -455,8 +455,8 @@ HOLYCLAUDE_HOST_WORKSPACE_DIR=./workspace
 | 変数 | デフォルト | 内容 |
 |----------|---------|--------------|
 | `TZ` | `UTC` | コンテナのタイムゾーン |
-| `PUID` | `1000` | コンテナのユーザー ID — パーミッション問題を避けるためホストと一致させる |
-| `PGID` | `1000` | コンテナのグループ ID — パーミッション問題を避けるためホストと一致させる |
+| `PUID` | `1000` | Docker 方式のコンテナユーザー ID; rootless Podman は `docker-compose.podman-rootless.yaml` を使用 |
+| `PGID` | `1000` | Docker 方式のコンテナグループ ID; rootless Podman は `docker-compose.podman-rootless.yaml` を使用 |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js ヒープメモリ上限（MB） |
 | `GIT_USER_NAME` | `HolyClaude User` | Git コミット作成者（初回起動時に一度設定） |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git コミットメールアドレス（初回起動時に一度設定） |
@@ -948,7 +948,7 @@ docker compose up -d
 `latest` の代わりに特定バージョンに固定するには:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">

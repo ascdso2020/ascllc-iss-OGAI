@@ -6,12 +6,13 @@ Complete reference for all HolyClaude configuration options.
 
 ## Docker Compose Files
 
-HolyClaude ships with two compose files:
+HolyClaude ships with three compose files:
 
 | File | Purpose | Usage |
 |------|---------|-------|
 | `docker-compose.yaml` | Quick start — minimal config, just works | `docker compose up -d` |
 | `docker-compose.full.yaml` | All options — ports, API keys, polling, notifications | `docker compose -f docker-compose.full.yaml up -d` |
+| `docker-compose.podman-rootless.yaml` | Rootless Podman on SELinux hosts with bidirectional workspace editing | `podman compose -f docker-compose.podman-rootless.yaml up -d` |
 
 ---
 
@@ -32,8 +33,8 @@ Docker Compose also supports a local `.env` file for variable interpolation. Hol
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `TZ` | `UTC` | Container timezone ([list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)) |
-| `PUID` | `1000` | User ID — match your host user's UID (`id -u`) |
-| `PGID` | `1000` | Group ID — match your host user's GID (`id -g`) |
+| `PUID` | `1000` | Docker-style container user ID remap. Rootless Podman users should use `docker-compose.podman-rootless.yaml`. |
+| `PGID` | `1000` | Docker-style container group ID remap. Rootless Podman users should use `docker-compose.podman-rootless.yaml`. |
 
 ### Performance
 
@@ -58,6 +59,17 @@ Only needed if your volumes are on a network share (Samba, NAS, etc.):
 |----------|---------|-------------|
 | `CHOKIDAR_USEPOLLING` | (unset) | Set to `1` — enables polling for file watchers |
 | `WATCHFILES_FORCE_POLLING` | (unset) | Set to `true` — enables polling for Python watchers |
+
+### Rootless Podman
+
+For Fedora or another SELinux host running rootless Podman, use:
+
+```bash
+mkdir -p data/claude workspace
+podman compose -f docker-compose.podman-rootless.yaml up -d
+```
+
+That profile uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` volume labels. `PUID` and `PGID` still document the intended container user, but they do not control Podman's host-visible subordinate UID mapping by themselves. Do not add `:U` to `/workspace` when you want to edit the same files from both the host and the container.
 
 ### Notifications (Apprise)
 

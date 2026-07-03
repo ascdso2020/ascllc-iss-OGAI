@@ -52,7 +52,7 @@ That's it. Open your browser, sign in, start building.
 
 ⚙️ **s6-overlay 3.2.3.0** — Proper PID 1 process supervision with graceful shutdown and automatic service restarts
 
-🔒 **Security** — UID/GID remapping via PUID/PGID, no credential proxying, everything stays local
+🔒 **Security** — Docker UID/GID remapping via PUID/PGID, rootless Podman keep-id profile, no credential proxying, everything stays local
 
 ## Image Variants
 
@@ -79,14 +79,16 @@ Credentials are stored locally in your bind-mounted `./data/claude` directory. H
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TZ` | Timezone | `UTC` |
-| `PUID` | Container user UID | `1000` |
-| `PGID` | Container user GID | `1000` |
+| `PUID` | Docker-style container user UID | `1000` |
+| `PGID` | Docker-style container user GID | `1000` |
 | `CHOKIDAR_USEPOLLING` | Enable polling for NAS/SMB mounts | unset |
 | `NOTIFY_DISCORD` | Discord webhook URL for notifications | unset |
 | `NOTIFY_TELEGRAM` | Telegram bot URL (`tgram://bot_token/chat_id`) | unset |
 | `NOTIFY_PUSHOVER` | Pushover URL for notifications | unset |
 | `NOTIFY_SLACK` | Slack webhook URL for notifications | unset |
 | `NOTIFY_URLS` | Catch-all Apprise notification URLs | unset |
+
+For rootless Podman on SELinux hosts, create `data/claude` and `workspace` first, then use `docker-compose.podman-rootless.yaml`. It uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels so host and container edits to `/workspace` stay under the same user. Do not add `:U` to `/workspace` unless you want Podman to rewrite host ownership for the container namespace.
 
 ## Volumes
 

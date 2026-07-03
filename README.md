@@ -389,8 +389,8 @@ services:
       - NODE_OPTIONS=--max-old-space-size=4096
       #
       # USER MAPPING
-      # Match these to your host user so files created inside the container
-      # have the right ownership on your host. Run `id -u` and `id -g` on your host.
+      # Docker-style UID/GID remapping. Run `id -u` and `id -g` on your host.
+      # Rootless Podman users should use docker-compose.podman-rootless.yaml instead.
       #
       - PUID=1000
       - PGID=1000
@@ -456,7 +456,7 @@ These values are read by Docker Compose on the host. They are not container envi
 |---------|-------------|-------------------|
 | **Timezone** | Container clock | Always — set to your local TZ |
 | **Performance** | Node.js memory ceiling | Only if you hit OOM errors on large projects |
-| **User mapping** | File permissions between container and host | If you get "permission denied" (`id -u` and `id -g` on your host) |
+| **User mapping** | File permissions between container and host | Docker users: match `id -u` and `id -g`. Rootless Podman users: use the Podman compose file below. |
 | **SMB/CIFS** | File watcher polling mode | Only if your volumes live on a NAS or network share |
 | **Notifications** | Push alerts via Apprise (Discord, Telegram, Slack, Email, 100+ services) | If you want to walk away and know when your AI agents are done |
 | **AI providers** | API keys for Gemini, Codex, Cursor, Junie, OpenCode | If you want to use AI CLIs other than Claude |
@@ -476,8 +476,8 @@ The complete reference. Every variable, what it defaults to, what it does.
 | Variable | Default | What it does |
 |----------|---------|--------------|
 | `TZ` | `UTC` | Container timezone |
-| `PUID` | `1000` | Container user ID — match your host to avoid permission issues |
-| `PGID` | `1000` | Container group ID — match your host to avoid permission issues |
+| `PUID` | `1000` | Container user ID for Docker-style UID/GID remapping |
+| `PGID` | `1000` | Container group ID for Docker-style UID/GID remapping |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js heap memory limit in MB |
 | `GIT_USER_NAME` | `HolyClaude User` | Git commit author (set once on first boot) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git commit email (set once on first boot) |
@@ -748,7 +748,7 @@ graph TB
 
 ### How the pieces fit together
 
-1. **Container starts** — `entrypoint.sh` runs as root. Remaps UID/GID to match your host user, restores the saved Claude Code session before bootstrap can touch it, and checks if this is a first boot.
+1. **Container starts** — `entrypoint.sh` runs as root for Docker and remaps UID/GID there. In rootless Podman keep-id mode, it skips root-only repairs because the container is already running as the target user. In both paths it restores the saved Claude Code session before bootstrap can touch it, and checks if this is a first boot.
 
 2. **First boot only** — `bootstrap.sh` runs once. Copies default settings, memory template, configures git identity. Creates a sentinel file (`.holyclaude-bootstrapped`) so it never runs again. Your customizations are safe from that point on.
 
@@ -796,6 +796,7 @@ holyclaude/
 ├── Dockerfile               # Single-stage build
 ├── docker-compose.yaml      # Quick start (minimal config)
 ├── docker-compose.full.yaml # Full config (all options)
+├── docker-compose.podman-rootless.yaml # Rootless Podman keep-id profile
 ├── LICENSE
 └── README.md
 ```
@@ -1018,7 +1019,7 @@ docker compose pull && docker compose up -d
 To pin a specific version instead of `latest`:
 
 ```yaml
-image: coderluii/holyclaude:1.3.7   # instead of :latest
+image: coderluii/holyclaude:1.4.1   # instead of :latest
 ```
 
 <p align="right">
@@ -1109,7 +1110,7 @@ Note: Polling uses more CPU than inotify. Only enable on network mounts.
 
 **Cause:** Container UID/GID doesn't match host file ownership.
 
-**Fix:**
+**Fix for Docker:**
 ```bash
 # On your host machine
 id -u  # → this is your PUID
@@ -1120,6 +1121,15 @@ Set them in your compose file:
 - PUID=1000
 - PGID=1000
 ```
+
+**Rootless Podman on SELinux:** `PUID`/`PGID` changes the container user, but rootless Podman still maps container IDs through your subordinate UID/GID range unless you use `keep-id`. Use the Podman profile instead:
+
+```bash
+mkdir -p data/claude workspace
+podman compose -f docker-compose.podman-rootless.yaml up -d
+```
+
+That file uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels. Do not add `:U` to `/workspace`; it rewrites host ownership and can make host editing worse.
 </details>
 
 <details>
