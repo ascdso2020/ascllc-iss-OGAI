@@ -4,6 +4,16 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.3] - 07/03/2026
+
+### Changed
+- Upgraded the vendored `@cloudcli-ai/cloudcli` package to 1.35.1.
+
+### Fixed
+- Retargeted the Apprise lifecycle bridge to CloudCLI 1.35.x's notification orchestrator so Codex stop and error events still reach HolyClaude's Apprise notification path.
+- Kept the Codex completion guard for CloudCLI 1.35.x provider-normalized `turn_complete` events, so successful Codex chat turns keep explicit `exitCode: 0`, `success: true`, and `aborted: false` fields.
+- Added regression coverage so the Apprise and Codex completion patches fail closed when CloudCLI moves the expected source or runtime anchors.
+
 ## [1.4.2] - 07/03/2026
 
 ### Added

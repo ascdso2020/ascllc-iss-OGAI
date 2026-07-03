@@ -3,13 +3,18 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 const DEFAULT_CLOUDCLI_ROOT = '/usr/local/lib/node_modules/@cloudcli-ai/cloudcli';
 const cliTarget = process.argv[2];
 const ERROR_MESSAGE = '[patch] ERROR: CloudCLI notification orchestrator anchors not found';
-const IMPORT_ANCHOR = "import { notificationPreferencesDb, pushSubscriptionsDb, sessionsDb } from '../modules/database/index.js';";
+const IMPORT_ANCHORS = [
+  "import { notificationPreferencesDb, pushSubscriptionsDb, sessionsDb } from '@/modules/database/index.js';",
+  "import { notificationPreferencesDb, pushSubscriptionsDb, sessionsDb } from '../../../modules/database/index.js';",
+  "import { notificationPreferencesDb, pushSubscriptionsDb, sessionsDb } from '../modules/database/index.js';"
+];
 const SPAWN_IMPORT = "import { spawn } from 'child_process';";
 const STOP_ANCHOR = "function notifyRunStopped({ userId, provider, sessionId = null, stopReason = 'completed', sessionName = null })";
 const FAILED_ANCHOR = "function notifyRunFailed({ userId, provider, sessionId = null, error, sessionName = null })";
 const HELPER_MARKER = "const APPRISE_PROVIDER_ALLOWLIST = new Set(['codex']);";
 const HELPER_NAME = 'sendAppriseLifecycleNotification';
 const SANITIZE_MARKER = "replace(/\\x00/g, '').replace(/\\s+/g, ' ')";
+const CALL_SITE_PATTERN = /^  sendAppriseLifecycleNotification\(\{/gm;
 
 const helperCode = `
 const APPRISE_PROVIDER_ALLOWLIST = new Set(['codex']);
@@ -96,30 +101,43 @@ function resolveTargets() {
 
   const root = cliTarget || DEFAULT_CLOUDCLI_ROOT;
   return [
-    { label: 'source', path: `${root}/server/services/notification-orchestrator.js` },
-    { label: 'runtime', path: `${root}/dist-server/server/services/notification-orchestrator.js` }
+    { label: 'source', path: `${root}/server/modules/notifications/services/notification-orchestrator.service.js` },
+    { label: 'runtime', path: `${root}/dist-server/server/modules/notifications/services/notification-orchestrator.service.js` }
   ].filter((target) => existsSync(target.path));
+}
+
+function findImportAnchor(source) {
+  return IMPORT_ANCHORS.find((anchor) => source.includes(anchor)) || null;
+}
+
+function countAppriseCallSites(source) {
+  return [...source.matchAll(CALL_SITE_PATTERN)].length;
 }
 
 function patchTarget(target) {
   let source = readFileSync(target.path, 'utf8');
+  const importAnchor = findImportAnchor(source);
 
   const requiredAnchorsPresent = source.includes(STOP_ANCHOR)
     && source.includes(FAILED_ANCHOR)
-    && source.includes(IMPORT_ANCHOR);
+    && importAnchor;
   if (!requiredAnchorsPresent) {
     console.error(ERROR_MESSAGE);
     process.exit(1);
   }
 
+  const hasStopCall = source.includes(stopCall.trimEnd());
+  const hasFailedCall = source.includes(failedCall.trimEnd());
+  const callSiteCount = countAppriseCallSites(source);
   const alreadyApplied = source.includes(SPAWN_IMPORT)
     && source.includes(HELPER_MARKER)
     && source.includes(`function ${HELPER_NAME}(`)
     && source.includes(SANITIZE_MARKER)
     && source.includes("child.on('error', () => {})")
     && source.includes('typeof child.unref')
-    && source.includes("kind: 'stop'")
-    && source.includes("kind: 'error'");
+    && hasStopCall
+    && hasFailedCall
+    && callSiteCount === 2;
 
   if (alreadyApplied) {
     console.log(`[patch] CloudCLI Apprise lifecycle notifications already applied (${target.label})`);
@@ -127,18 +145,18 @@ function patchTarget(target) {
   }
 
   if (!source.includes(SPAWN_IMPORT)) {
-    source = source.replace(IMPORT_ANCHOR, `${SPAWN_IMPORT}\n${IMPORT_ANCHOR}`);
+    source = source.replace(importAnchor, `${SPAWN_IMPORT}\n${importAnchor}`);
   }
 
   if (!source.includes(HELPER_MARKER)) {
     source = source.replace(`${STOP_ANCHOR} {`, `${helperCode}\n${STOP_ANCHOR} {`);
   }
 
-  if (!source.includes("kind: 'stop'")) {
+  if (!source.includes(stopCall.trimEnd())) {
     source = source.replace(`${STOP_ANCHOR} {\n`, `${STOP_ANCHOR} {\n${stopCall}`);
   }
 
-  if (!source.includes("kind: 'error'")) {
+  if (!source.includes(failedCall.trimEnd())) {
     const failedPattern = new RegExp(`${escapeRegex(FAILED_ANCHOR)} \\{\\n\\s*const errorMessage = normalizeErrorMessage\\(error\\);`);
     if (!failedPattern.test(source)) {
       console.error(ERROR_MESSAGE);
@@ -153,8 +171,9 @@ function patchTarget(target) {
     && source.includes(SANITIZE_MARKER)
     && source.includes("child.on('error', () => {})")
     && source.includes('typeof child.unref')
-    && source.includes("kind: 'stop'")
-    && source.includes("kind: 'error'");
+    && source.includes(stopCall.trimEnd())
+    && source.includes(failedCall.trimEnd())
+    && countAppriseCallSites(source) === 2;
 
   if (!finalApplied) {
     console.error(ERROR_MESSAGE);

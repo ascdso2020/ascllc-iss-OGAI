@@ -180,10 +180,11 @@ RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.79.3; \
     fi
 
-COPY vendor/artifacts/cloudcli-ai-cloudcli-1.34.0.tgz /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz
+ARG CLOUDCLI_VERSION=1.35.1
+COPY vendor/artifacts/cloudcli-ai-cloudcli-${CLOUDCLI_VERSION}.tgz /tmp/vendor/cloudcli-ai-cloudcli.tgz
 
 # ---------- CloudCLI (web UI for Claude Code) ----------
-RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli-1.34.0.tgz
+RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli.tgz
 COPY scripts/patch-cloudcli-apprise-notifications.mjs /tmp/patch-cloudcli-apprise-notifications.mjs
 COPY scripts/patch-cloudcli-codex-complete-exit-code.mjs /tmp/patch-cloudcli-codex-complete-exit-code.mjs
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
@@ -194,8 +195,8 @@ RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
 RUN node /tmp/patch-cloudcli-disable-self-update.mjs && rm -f /tmp/patch-cloudcli-disable-self-update.mjs
 
-# CloudCLI 1.34.0 already contains the WebSocket binary-frame fix and the newer
-# provider model flow. Keep build-time checks so regressions fail closed.
+# CloudCLI 1.35.1 already contains the WebSocket binary-frame fix, provider
+# model flow, and final Codex complete exit codes. Keep checks fail-closed.
 RUN CLOUDCLI_WS_PROXY="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/websocket/services/plugin-websocket-proxy.service.js" && \
     grep -q "binary: isBinary" "$CLOUDCLI_WS_PROXY" && \
     echo "[patch] WebSocket frame type fix already present upstream"
@@ -204,14 +205,29 @@ RUN CLOUDCLI_COMMANDS="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-se
     grep -q "providerModelsService.getProviderModels" "$CLOUDCLI_COMMANDS" && \
     echo "[patch] Provider model command flow already present upstream"
 
+RUN CLOUDCLI_CODEX="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/openai-codex.js" && \
+    grep -q "exitCode: terminalFailure ? 1 : 0" "$CLOUDCLI_CODEX" && \
+    grep -q "exitCode: 1" "$CLOUDCLI_CODEX" && \
+    echo "[patch] Codex final completion exitCode fix already present upstream"
+
 # patch: bridge Codex CloudCLI lifecycle events to Apprise (issue #17)
 RUN node /tmp/patch-cloudcli-apprise-notifications.mjs && rm -f /tmp/patch-cloudcli-apprise-notifications.mjs
+RUN CLOUDCLI_NOTIFICATIONS="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/notifications/services/notification-orchestrator.service.js" && \
+    test "$(grep -c "^  sendAppriseLifecycleNotification({" "$CLOUDCLI_NOTIFICATIONS")" = "2" && \
+    grep -q "kind: 'stop'" "$CLOUDCLI_NOTIFICATIONS" && \
+    grep -q "kind: 'error'" "$CLOUDCLI_NOTIFICATIONS" && \
+    echo "[patch] Apprise lifecycle bridge applied to CloudCLI runtime"
 
 # patch: configure Codex CloudCLI chat permission mode (issue #18)
 RUN node /tmp/patch-cloudcli-codex-permissions.mjs && rm -f /tmp/patch-cloudcli-codex-permissions.mjs
 
-# patch: include explicit Codex success exitCode in CloudCLI completion events (issue #19)
+# patch: preserve explicit Codex complete fields on the 1.35.x provider path (issue #19)
 RUN node /tmp/patch-cloudcli-codex-complete-exit-code.mjs && rm -f /tmp/patch-cloudcli-codex-complete-exit-code.mjs
+RUN CLOUDCLI_CODEX_PROVIDER="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/providers/list/codex/codex-sessions.provider.js" && \
+    grep -q "exitCode: 0" "$CLOUDCLI_CODEX_PROVIDER" && \
+    grep -q "success: true" "$CLOUDCLI_CODEX_PROVIDER" && \
+    grep -q "aborted: false" "$CLOUDCLI_CODEX_PROVIDER" && \
+    echo "[patch] Codex provider completion fields applied to CloudCLI runtime"
 
 # ---------- CloudCLI plugins (baked into image) ----------
 USER claude

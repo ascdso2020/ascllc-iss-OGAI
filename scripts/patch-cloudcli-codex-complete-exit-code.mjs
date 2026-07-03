@@ -3,10 +3,31 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 const DEFAULT_CLOUDCLI_ROOT = '/usr/local/lib/node_modules/@cloudcli-ai/cloudcli';
 const cliTarget = process.argv[2];
 const ERROR_MESSAGE = '[patch] ERROR: CloudCLI Codex complete exitCode anchors not found';
+const UPSTREAM_SUCCESS_EXIT_CODE = 'exitCode: terminalFailure ? 1 : 0';
+const UPSTREAM_ERROR_EXIT_CODE = 'exitCode: 1';
 
-const completeEventWithExitCodePattern = /kind:\s*['"]complete['"],\s*\r?\n\s*exitCode:\s*0,\s*\r?\n\s*actualSessionId:\s*capturedSessionId\s*\|\|\s*thread\.id\s*\|\|\s*sessionId\s*\|\|\s*null,\s*\r?\n\s*sessionId:\s*capturedSessionId\s*\|\|\s*sessionId\s*\|\|\s*null,\s*\r?\n\s*provider:\s*['"]codex['"]/m;
+const providerCompleteWithFieldsPattern = /raw\.type === ['"]turn_complete['"][\s\S]*?kind:\s*['"]complete['"],\s*\r?\n\s*exitCode:\s*0,\s*\r?\n\s*success:\s*true,\s*\r?\n\s*aborted:\s*false,/m;
+const providerCompleteWithoutFieldsPattern = /(\s*if\s*\(raw\.type === ['"]turn_complete['"]\)\s*\{\s*\r?\n\s*return\s*\[createNormalizedMessage\(\{\s*\r?\n\s*id:\s*baseId,\s*\r?\n\s*sessionId,\s*\r?\n\s*timestamp:\s*ts,\s*\r?\n\s*provider:\s*PROVIDER,\s*\r?\n\s*kind:\s*['"]complete['"],\s*\r?\n)(\s*\}\)\];)/m;
 
-const completeEventWithoutExitCodePattern = /(^\s*kind:\s*['"]complete['"],\s*\r?\n)(\s*)actualSessionId:\s*capturedSessionId\s*\|\|\s*thread\.id\s*\|\|\s*sessionId\s*\|\|\s*null,/m;
+function verifyOpenAiCodexTargets(root) {
+  const targets = [
+    { label: 'source openai-codex', path: `${root}/server/openai-codex.js` },
+    { label: 'runtime openai-codex', path: `${root}/dist-server/server/openai-codex.js` }
+  ];
+
+  for (const target of targets) {
+    if (!existsSync(target.path)) {
+      console.error(`${ERROR_MESSAGE}: missing ${target.path}`);
+      process.exit(1);
+    }
+
+    const source = readFileSync(target.path, 'utf8');
+    if (!source.includes(UPSTREAM_SUCCESS_EXIT_CODE) || !source.includes(UPSTREAM_ERROR_EXIT_CODE)) {
+      console.error(`${ERROR_MESSAGE}: missing upstream final exitCode in ${target.label}`);
+      process.exit(1);
+    }
+  }
+}
 
 function resolveTargets() {
   if (cliTarget && existsSync(cliTarget) && statSync(cliTarget).isFile()) {
@@ -14,9 +35,10 @@ function resolveTargets() {
   }
 
   const root = cliTarget || DEFAULT_CLOUDCLI_ROOT;
+  verifyOpenAiCodexTargets(root);
   const targets = [
-    { label: 'source', path: `${root}/server/openai-codex.js` },
-    { label: 'runtime', path: `${root}/dist-server/server/openai-codex.js` }
+    { label: 'source provider', path: `${root}/server/modules/providers/list/codex/codex-sessions.provider.ts` },
+    { label: 'runtime provider', path: `${root}/dist-server/server/modules/providers/list/codex/codex-sessions.provider.js` }
   ];
   const missingTargets = targets.filter((target) => !existsSync(target.path));
 
@@ -31,28 +53,28 @@ function resolveTargets() {
 function patchTarget(target) {
   let source = readFileSync(target.path, 'utf8');
 
-  if (completeEventWithExitCodePattern.test(source)) {
-    console.log(`[patch] CloudCLI Codex complete exitCode already present (${target.label})`);
+  if (providerCompleteWithFieldsPattern.test(source)) {
+    console.log(`[patch] CloudCLI Codex provider complete fields already present (${target.label})`);
     return;
   }
 
-  if (!completeEventWithoutExitCodePattern.test(source)) {
+  if (!providerCompleteWithoutFieldsPattern.test(source)) {
     console.error(ERROR_MESSAGE);
     process.exit(1);
   }
 
   source = source.replace(
-    completeEventWithoutExitCodePattern,
-    (_, kindLine, indent) => `${kindLine}${indent}exitCode: 0,\n${indent}actualSessionId: capturedSessionId || thread.id || sessionId || null,`
+    providerCompleteWithoutFieldsPattern,
+    (_, prefix, suffix) => `${prefix}        exitCode: 0,\n        success: true,\n        aborted: false,\n${suffix}`
   );
 
-  if (!completeEventWithExitCodePattern.test(source)) {
+  if (!providerCompleteWithFieldsPattern.test(source)) {
     console.error(ERROR_MESSAGE);
     process.exit(1);
   }
 
   writeFileSync(target.path, source);
-  console.log(`[patch] CloudCLI Codex complete exitCode applied (${target.label})`);
+  console.log(`[patch] CloudCLI Codex provider complete fields applied (${target.label})`);
 }
 
 const targets = resolveTargets();
