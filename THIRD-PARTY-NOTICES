@@ -10,7 +10,7 @@ licensed under MIT (see LICENSE).
 - Copyright: CloudCLI UI Contributors
 - Homepage: https://cloudcli.ai
 - npm: https://www.npmjs.com/package/@cloudcli-ai/cloudcli
-- Version: 1.35.1, installed from HolyClaude's vendored source-release tarball
+- Version: 1.36.0, installed from HolyClaude's vendored source-release tarball
 
 CloudCLI is installed as a standalone program via npm and runs as an
 independent process managed by s6-overlay.
@@ -46,7 +46,7 @@ HolyClaude builds and enables these CloudCLI plugins in the image:
 - `project-stats`: https://github.com/cloudcli-ai/cloudcli-plugin-starter,
   pinned to commit `4895cd3fd33362471e739b786493aba048487bcc`.
 - `web-terminal`: https://github.com/cloudcli-ai/cloudcli-plugin-terminal,
-  pinned to commit `2bb28540ff5fda84972f99489f976551b8a552e8`.
+  pinned to commit `8aa41f614c216d961e7c0d9c3e67982c6b2d9da3`.
 
 Each plugin remains under its upstream license. Inspect the plugin repositories
 for their source and license files.
@@ -84,7 +84,7 @@ Mosh provides the optional roaming terminal path. HolyClaude gates
 
 - License: MIT
 - Source: https://github.com/nodejs/node
-- Version: 26.3.0 base image
+- Version: 26.4.0 base image
 
 ## Desloppify
 
@@ -102,7 +102,7 @@ create `.desloppify/`, or modify project files unless a user runs Desloppify.
 - License: MIT
 - Source: https://github.com/earendil-works/pi
 - npm: https://www.npmjs.com/package/@earendil-works/pi-coding-agent
-- Version: 0.79.3, installed in the full image only
+- Version: 0.80.3, installed in the full image only
 
 For a complete list of installed packages and their licenses, inspect the
 Docker image directly or refer to the Dockerfile.

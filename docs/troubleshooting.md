@@ -323,7 +323,7 @@ docker compose pull
 docker compose up -d
 ```
 
-HolyClaude keeps a Docker-build CloudCLI patch for this path. In v1.4.3 that guard also covers CloudCLI 1.35.x provider-normalized `turn_complete` events, so successful Codex turns include explicit `exitCode: 0`, `success: true`, and `aborted: false` fields.
+HolyClaude keeps a Docker-build CloudCLI patch for this path. In v1.4.4 that guard also covers CloudCLI 1.36.x provider-normalized `turn_complete` events, so successful Codex turns include explicit `exitCode: 0`, `success: true`, and `aborted: false` fields.
 
 ---
 

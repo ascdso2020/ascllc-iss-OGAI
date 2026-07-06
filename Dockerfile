@@ -7,7 +7,7 @@
 #   docker build --build-arg VARIANT=slim -t holyclaude:slim .
 # ==============================================================================
 
-FROM node:26.3.0-bookworm-slim
+FROM node:26.4.0-bookworm-slim
 
 LABEL org.opencontainers.image.source=https://github.com/CoderLuii/HolyClaude
 
@@ -111,51 +111,51 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ---------- npm global packages (slim — always installed) ----------
 RUN npm i -g \
-    typescript@6.0.3 tsx@4.22.4 \
-    pnpm@11.6.0 \
-    vite@8.0.16 esbuild@0.28.1 \
-    eslint@10.5.0 prettier@3.8.4 \
+    typescript@6.0.3 tsx@4.23.0 \
+    pnpm@11.10.0 \
+    vite@8.1.3 esbuild@0.28.1 \
+    eslint@10.6.0 prettier@3.9.4 \
     serve@14.2.6 nodemon@3.1.14 concurrently@10.0.3 \
     dotenv-cli@11.0.0
 
 # ---------- npm global packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g \
-      wrangler@4.100.0 vercel@54.14.0 netlify-cli@26.1.0 \
-      pm2@7.0.1 \
+      wrangler@4.107.0 vercel@54.21.0 netlify-cli@26.1.0 \
+      pm2@7.0.3 \
       prisma@7.8.0 drizzle-kit@0.31.10 \
-      eas-cli@20.1.0 \
+      eas-cli@20.5.1 \
       lighthouse@13.4.0 @lhci/cli@0.15.1 \
       sharp-cli@5.2.0 json-server@1.0.0-beta.15 http-server@14.1.1 \
-      @marp-team/marp-cli@4.4.0 && \
+      @marp-team/marp-cli@4.4.1 && \
     npm i -g --legacy-peer-deps @cloudflare/next-on-pages@1.13.16; \
     fi
 
 # ---------- Python packages (slim — always installed) ----------
 RUN pip install --no-cache-dir --break-system-packages \
     requests==2.34.2 httpx==0.28.1 beautifulsoup4==4.15.0 lxml==6.1.1 \
-    Pillow==12.2.0 \
+    Pillow==12.3.0 \
     pandas==3.0.3 numpy==2.4.6 \
     openpyxl==3.1.5 python-docx==1.2.0 \
     jinja2==3.1.6 pyyaml==6.0.3 python-dotenv==1.2.2 markdown==3.10.2 \
-    rich==15.0.0 click==8.4.1 tqdm==4.68.2 \
+    rich==15.0.0 click==8.4.2 tqdm==4.68.3 \
     'desloppify[full]==1.0' bandit==1.9.4 defusedxml==0.7.1 \
-    tree-sitter==0.25.2 tree-sitter-language-pack==1.6.2 stevedore==5.8.0 \
-    playwright==1.60.0 \
-    apprise==1.11.0
+    tree-sitter==0.26.0 tree-sitter-language-pack==1.6.2 stevedore==5.9.0 \
+    playwright==1.61.0 \
+    apprise==1.12.0
 
 # ---------- Python packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     pip install --no-cache-dir --break-system-packages \
-      reportlab==4.5.1 weasyprint==69.0 cairosvg==2.9.0 fpdf2==2.8.7 PyMuPDF==1.27.2.3 pdfkit==1.0.0 img2pdf==0.6.3 \
+      reportlab==5.0.0 weasyprint==69.0 cairosvg==2.9.0 fpdf2==2.8.7 PyMuPDF==1.28.0 pdfkit==1.0.0 img2pdf==0.6.3 \
       xlsxwriter==3.2.9 xlrd==2.0.2 \
       matplotlib==3.11.0 seaborn==0.13.2 \
       python-pptx==1.0.2 \
-      fastapi==0.137.0 uvicorn==0.49.0; \
+      fastapi==0.139.0 uvicorn==0.50.2; \
     fi
 
 # ---------- AI CLI providers ----------
-RUN npm i -g @google/gemini-cli@0.46.0 @openai/codex@0.139.0 task-master-ai@0.43.1
+RUN npm i -g @google/gemini-cli@0.49.0 @openai/codex@0.142.5 task-master-ai@0.43.1
 USER claude
 RUN curl -fsSL https://cursor.com/install | bash && \
     if [ ! -e /home/claude/.local/bin/cursor ] && [ -e /home/claude/.local/bin/cursor-agent ]; then \
@@ -172,15 +172,15 @@ USER root
 
 # ---------- OpenCode CLI (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g opencode-ai@1.17.7; \
+    npm i -g opencode-ai@1.17.14; \
     fi
 
 # ---------- Pi Coding Agent (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.79.3; \
+    npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.80.3; \
     fi
 
-ARG CLOUDCLI_VERSION=1.35.1
+ARG CLOUDCLI_VERSION=1.36.0
 COPY vendor/artifacts/cloudcli-ai-cloudcli-${CLOUDCLI_VERSION}.tgz /tmp/vendor/cloudcli-ai-cloudcli.tgz
 
 # ---------- CloudCLI (web UI for Claude Code) ----------
@@ -195,7 +195,7 @@ RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
 RUN node /tmp/patch-cloudcli-disable-self-update.mjs && rm -f /tmp/patch-cloudcli-disable-self-update.mjs
 
-# CloudCLI 1.35.1 already contains the WebSocket binary-frame fix, provider
+# CloudCLI 1.36.0 already contains the WebSocket binary-frame fix, provider
 # model flow, and final Codex complete exit codes. Keep checks fail-closed.
 RUN CLOUDCLI_WS_PROXY="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/websocket/services/plugin-websocket-proxy.service.js" && \
     grep -q "binary: isBinary" "$CLOUDCLI_WS_PROXY" && \
@@ -242,9 +242,9 @@ RUN mkdir -p /home/claude/.claude-code-ui/plugins && \
     git init /home/claude/.claude-code-ui/plugins/web-terminal && \
     cd /home/claude/.claude-code-ui/plugins/web-terminal && \
     git remote add origin https://github.com/cloudcli-ai/cloudcli-plugin-terminal.git && \
-    git fetch --depth 1 origin 2bb28540ff5fda84972f99489f976551b8a552e8 && \
+    git fetch --depth 1 origin 8aa41f614c216d961e7c0d9c3e67982c6b2d9da3 && \
     git checkout --detach FETCH_HEAD && \
-    test "$(git rev-parse --short=12 HEAD)" = "2bb28540ff5f" && \
+    test "$(git rev-parse --short=12 HEAD)" = "8aa41f614c21" && \
     node /tmp/patch-cloudcli-web-terminal-rendering.mjs /home/claude/.claude-code-ui/plugins/web-terminal && \
     npm install && npm run build && \
     rm -f /tmp/patch-cloudcli-web-terminal-rendering.mjs && \

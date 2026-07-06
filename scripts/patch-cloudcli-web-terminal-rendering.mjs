@@ -91,34 +91,42 @@ function replaceRequired(source, oldText, newText) {
   return source.replace(oldText, newText);
 }
 
+function isServerPatched(source) {
+  return source.includes(SERVER_ONDATA_TYPE_NEW)
+    && source.includes('encoding: null,')
+    && source.includes("new TextDecoder('utf-8', { fatal: false })")
+    && source.includes('decoder.decode(chunk, { stream: true })')
+    && !source.includes('ptyProc.onData((chunk: string) => {')
+    && !source.includes('ws.send(chunk, () => ptyProc.resume())');
+}
+
 function assertServerPatched(source) {
-  if (
-    !source.includes(SERVER_ONDATA_TYPE_NEW)
-    || !source.includes('encoding: null,')
-    || !source.includes("new TextDecoder('utf-8', { fatal: false })")
-    || !source.includes('decoder.decode(chunk, { stream: true })')
-    || source.includes('ptyProc.onData((chunk: string) => {')
-    || source.includes('ws.send(chunk, () => ptyProc.resume())')
-  ) {
+  if (!isServerPatched(source)) {
     fail();
   }
 }
 
+function isIndexPatched(source) {
+  return source.includes('const DEFAULT_FONT_FAMILY =')
+    && source.includes('const WEBGL_DISABLED_KEY =')
+    && source.includes('function isWebglDisabled(): boolean')
+    && source.includes(INDEX_FONT_NEW)
+    && source.includes('if (!isWebglDisabled()) {')
+    && !source.includes(INDEX_FONT_OLD);
+}
+
 function assertIndexPatched(source) {
-  if (
-    !source.includes('const DEFAULT_FONT_FAMILY =')
-    || !source.includes('const WEBGL_DISABLED_KEY =')
-    || !source.includes('function isWebglDisabled(): boolean')
-    || !source.includes(INDEX_FONT_NEW)
-    || !source.includes('if (!isWebglDisabled()) {')
-    || source.includes(INDEX_FONT_OLD)
-  ) {
+  if (!isIndexPatched(source)) {
     fail();
   }
 }
 
 function patchServer(path) {
   let source = readSource(path);
+
+  if (isServerPatched(source)) {
+    return;
+  }
 
   source = replaceRequired(source, SERVER_ONDATA_TYPE_OLD, SERVER_ONDATA_TYPE_NEW);
   source = replaceRequired(source, SERVER_SPAWN_ENV_OLD, SERVER_SPAWN_ENV_NEW);
@@ -130,6 +138,10 @@ function patchServer(path) {
 
 function patchIndex(path) {
   let source = readSource(path);
+
+  if (isIndexPatched(source)) {
+    return;
+  }
 
   source = replaceRequired(source, INDEX_PREFS_OLD, INDEX_PREFS_NEW);
   source = replaceRequired(source, INDEX_FONT_OLD, INDEX_FONT_NEW);

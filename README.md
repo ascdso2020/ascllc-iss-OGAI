@@ -1099,7 +1099,7 @@ docker compose pull && docker compose up -d
 To pin a specific version instead of `latest`:
 
 ```yaml
-image: coderluii/holyclaude:1.4.1   # instead of :latest
+image: coderluii/holyclaude:1.4.4   # instead of :latest
 ```
 
 <p align="right">

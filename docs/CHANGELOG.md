@@ -4,6 +4,17 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.4] - 07/06/2026
+
+### Changed
+- Refreshed the Docker runtime to Node.js 26.4.0 and updated the pinned npm, Python, AI CLI, deployment CLI, and browser automation packages in the image.
+- Upgraded the vendored `@cloudcli-ai/cloudcli` package to 1.36.0 and rebuilt the CloudCLI patch checks against that tarball.
+- Updated the baked CloudCLI Web Terminal plugin to commit `8aa41f614c216d961e7c0d9c3e67982c6b2d9da3` and kept HolyClaude's terminal rendering guard compatible with that plugin's upstream rendering fixes.
+- Updated the Docker publish workflow actions for checkout, QEMU, Buildx, registry login, metadata, and build/push.
+
+### Removed
+- Removed the Dependabot version-update config so GitHub Actions maintenance stays in intentional release prep instead of opening bot PRs.
+
 ## [1.4.3] - 07/03/2026
 
 ### Changed

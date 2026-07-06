@@ -60,6 +60,76 @@ class TerminalSession {
 }
 `;
 
+const upstreamPatchedServerFixture = `interface PtyProcess {
+  onData(callback: (data: string | Buffer) => void): void;
+}
+
+wss.on('connection', (ws: any) => {
+  let ptyProc: PtyProcess;
+  ptyProc = pty.spawn(shell, [], {
+      name: 'xterm-256color',
+      cols: 80,
+      rows: 24,
+      cwd,
+      env: {
+        ...prioritizeUserNpmGlobalBin(process.env),
+        TERM: 'xterm-256color',
+        COLORTERM: 'truecolor',
+        TERM_PROGRAM: 'web-terminal',
+      },
+      encoding: null,
+    });
+
+  const decoder = new TextDecoder('utf-8', { fatal: false });
+
+  ptyProc.onData((chunk: string | Buffer) => {
+    const text = typeof chunk === 'string'
+      ? chunk
+      : decoder.decode(chunk, { stream: true });
+
+    if (!text) {
+      return;
+    }
+
+    ptyProc.pause();
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(text, () => ptyProc.resume());
+    } else {
+      ptyProc.resume();
+    }
+  });
+});
+`;
+
+const upstreamPatchedIndexFixture = `const PREFS_KEY = 'web-terminal-prefs';
+const WEBGL_DISABLED_KEY = 'web-terminal-disable-webgl';
+const DEFAULT_FONT_FAMILY = '"Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", "Noto Sans Mono", "Noto Sans Mono CJK JP", "Noto Sans CJK JP", "Microsoft YaHei", "MS Gothic", Meiryo, "PingFang SC", "Hiragino Sans GB", "Noto Color Emoji", Menlo, Monaco, "Courier New", monospace';
+function isWebglDisabled(): boolean { try { return localStorage.getItem(WEBGL_DISABLED_KEY) === 'true'; } catch { return false; } }
+function loadPrefs(): Partial<Prefs> { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}'); } catch { return {}; } }
+function savePrefs(p: Prefs): void { try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* ignore */ } }
+
+class TerminalSession {
+  constructor(opts: SessionOptions) {
+    this.terminal = new opts.Terminal({
+      cursorBlink: true,
+      fontSize: opts.prefs.fontSize || 14,
+      fontFamily: opts.prefs.fontFamily || DEFAULT_FONT_FAMILY,
+      allowProposedApi: true, convertEol: true, scrollback: 10000,
+      tabStopWidth: 4, macOptionIsMeta: true, macOptionClickForcesSelection: true,
+      theme: THEMES[opts.prefs.theme || 'VS Dark'],
+    });
+
+    if (!isWebglDisabled()) {
+      try {
+        const webgl = new opts.WebglAddon();
+        webgl.onContextLoss(() => { try { webgl.dispose(); } catch { /* ignore */ } });
+        this.terminal.loadAddon(webgl);
+      } catch { /* ignore */ }
+    }
+  }
+}
+`;
+
 async function createPluginFixture({ driftIndex = false } = {}) {
   const pluginRoot = await mkdtemp(path.join(tmpdir(), 'holyclaude-web-terminal-'));
   const srcDir = path.join(pluginRoot, 'src');
@@ -107,6 +177,19 @@ test('CloudCLI web terminal rendering patch is idempotent', async () => {
 
   assert.equal(await readPluginSource(pluginRoot, 'src/server.ts'), firstRunServer);
   assert.equal(await readPluginSource(pluginRoot, 'src/index.ts'), firstRunIndex);
+});
+
+test('CloudCLI web terminal rendering patch accepts upstream patched sources', async () => {
+  const pluginRoot = await mkdtemp(path.join(tmpdir(), 'holyclaude-web-terminal-'));
+  const srcDir = path.join(pluginRoot, 'src');
+  await mkdir(srcDir, { recursive: true });
+  await writeFile(path.join(srcDir, 'server.ts'), upstreamPatchedServerFixture);
+  await writeFile(path.join(srcDir, 'index.ts'), upstreamPatchedIndexFixture);
+
+  await runPatch(pluginRoot);
+
+  assert.equal(await readPluginSource(pluginRoot, 'src/server.ts'), upstreamPatchedServerFixture);
+  assert.equal(await readPluginSource(pluginRoot, 'src/index.ts'), upstreamPatchedIndexFixture);
 });
 
 test('CloudCLI web terminal rendering patch fails closed when anchors drift', async () => {
