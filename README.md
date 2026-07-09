@@ -1209,7 +1209,7 @@ mkdir -p data/claude workspace
 podman compose -f docker-compose.podman-rootless.yaml up -d
 ```
 
-That file uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels. Do not add `:U` to `/workspace`; it rewrites host ownership and can make host editing worse.
+That file uses `userns_mode: "keep-id:uid=1000,gid=1000"` and `:Z` labels. Do not add `:U` to `/workspace`; it rewrites host ownership and can make host editing worse.
 </details>
 
 <details>

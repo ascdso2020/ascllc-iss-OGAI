@@ -16,8 +16,7 @@ services:
     hostname: holyclaude
     restart: unless-stopped
     shm_size: 2g
-    userns_mode: keep-id
-    user: "1000:1000"
+    userns_mode: "keep-id:uid=1000,gid=1000"
     network_mode: bridge
     cap_add:
       - SYS_ADMIN

@@ -4,6 +4,12 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.5] - 07/09/2026
+
+### Fixed
+- Use Podman's explicit `keep-id:uid=1000,gid=1000` mapping in the rootless compose profile so host and container workspace files stay aligned with UID/GID 1000.
+- Remove the redundant rootless compose `user: "1000:1000"` override now that the user namespace mapping carries the intended UID/GID.
+
 ## [1.4.4] - 07/06/2026
 
 ### Changed

@@ -105,7 +105,7 @@ mkdir -p data/claude workspace
 podman compose -f docker-compose.podman-rootless.yaml up -d
 ```
 
-That profile uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` volume labels. `PUID` and `PGID` still document the intended container user, but they do not control Podman's host-visible subordinate UID mapping by themselves. Do not add `:U` to `/workspace` when you want to edit the same files from both the host and the container.
+That profile uses `userns_mode: "keep-id:uid=1000,gid=1000"` and `:Z` volume labels. `PUID` and `PGID` still document the intended container user, but they do not control Podman's host-visible subordinate UID mapping by themselves. Do not add `:U` to `/workspace` when you want to edit the same files from both the host and the container.
 
 ### Notifications (Apprise)
 

@@ -92,7 +92,7 @@ Credentials are stored locally in your bind-mounted `./data/claude` directory. H
 | `HOLYCLAUDE_SSH_ENABLE` | Optional key-only SSH service | `false` |
 | `HOLYCLAUDE_MOSH_ENABLE` | Optional Mosh UDP session support | `false` |
 
-For rootless Podman on SELinux hosts, create `data/claude` and `workspace` first, then use `docker-compose.podman-rootless.yaml`. It uses `userns_mode: keep-id`, `user: "1000:1000"`, and `:Z` labels so host and container edits to `/workspace` stay under the same user. Do not add `:U` to `/workspace` unless you want Podman to rewrite host ownership for the container namespace.
+For rootless Podman on SELinux hosts, create `data/claude` and `workspace` first, then use `docker-compose.podman-rootless.yaml`. It uses `userns_mode: "keep-id:uid=1000,gid=1000"` and `:Z` labels so host and container edits to `/workspace` stay under the same user. Do not add `:U` to `/workspace` unless you want Podman to rewrite host ownership for the container namespace.
 
 ## Volumes
 
