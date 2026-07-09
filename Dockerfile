@@ -180,8 +180,10 @@ RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.80.3; \
     fi
 
-ARG CLOUDCLI_VERSION=1.36.0
-COPY vendor/artifacts/cloudcli-ai-cloudcli-${CLOUDCLI_VERSION}.tgz /tmp/vendor/cloudcli-ai-cloudcli.tgz
+ARG CLOUDCLI_VERSION=1.36.1
+ARG CLOUDCLI_ACCOUNT_MANAGEMENT_ARTIFACT=cloudcli-ai-cloudcli-1.36.1-holyclaude-account-management.tgz
+COPY vendor/artifacts/${CLOUDCLI_ACCOUNT_MANAGEMENT_ARTIFACT} /tmp/vendor/cloudcli-ai-cloudcli.tgz
+COPY vendor/artifacts/cloudcli-account-management.manifest.json /tmp/vendor/cloudcli-account-management.manifest.json
 
 # ---------- CloudCLI (web UI for Claude Code) ----------
 RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli.tgz
@@ -190,12 +192,13 @@ COPY scripts/patch-cloudcli-codex-complete-exit-code.mjs /tmp/patch-cloudcli-cod
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
 COPY scripts/patch-cloudcli-disable-self-update.mjs /tmp/patch-cloudcli-disable-self-update.mjs
 COPY --chown=claude:claude scripts/patch-cloudcli-web-terminal-rendering.mjs /tmp/patch-cloudcli-web-terminal-rendering.mjs
+COPY scripts/verify-cloudcli-account-management-support.mjs /tmp/verify-cloudcli-account-management-support.mjs
 RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
 
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
 RUN node /tmp/patch-cloudcli-disable-self-update.mjs && rm -f /tmp/patch-cloudcli-disable-self-update.mjs
 
-# CloudCLI 1.36.0 already contains the WebSocket binary-frame fix, provider
+# CloudCLI 1.36.1 already contains the WebSocket binary-frame fix, provider
 # model flow, and final Codex complete exit codes. Keep checks fail-closed.
 RUN CLOUDCLI_WS_PROXY="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/websocket/services/plugin-websocket-proxy.service.js" && \
     grep -q "binary: isBinary" "$CLOUDCLI_WS_PROXY" && \
@@ -228,6 +231,10 @@ RUN CLOUDCLI_CODEX_PROVIDER="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/d
     grep -q "success: true" "$CLOUDCLI_CODEX_PROVIDER" && \
     grep -q "aborted: false" "$CLOUDCLI_CODEX_PROVIDER" && \
     echo "[patch] Codex provider completion fields applied to CloudCLI runtime"
+
+# patch: local account logout/password bridge for CloudCLI (issue #65)
+RUN node /tmp/verify-cloudcli-account-management-support.mjs /usr/local/lib/node_modules/@cloudcli-ai/cloudcli && \
+    rm -f /tmp/verify-cloudcli-account-management-support.mjs /tmp/vendor/cloudcli-account-management.manifest.json
 
 # ---------- CloudCLI plugins (baked into image) ----------
 USER claude

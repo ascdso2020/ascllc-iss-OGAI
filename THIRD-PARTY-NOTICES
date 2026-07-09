@@ -10,7 +10,7 @@ licensed under MIT (see LICENSE).
 - Copyright: CloudCLI UI Contributors
 - Homepage: https://cloudcli.ai
 - npm: https://www.npmjs.com/package/@cloudcli-ai/cloudcli
-- Version: 1.36.0, installed from HolyClaude's vendored source-release tarball
+- Version: 1.36.1, installed from HolyClaude's vendored source-release tarball
 
 CloudCLI is installed as a standalone program via npm and runs as an
 independent process managed by s6-overlay.
@@ -32,12 +32,17 @@ build.
   HolyClaude's existing `/usr/local/bin/notify.py` hook.
 - Codex completion guard: keeps provider-normalized Codex `turn_complete`
   events aligned with the successful final completion payload.
+- Account-management bridge: adds local Logout and Change Password controls,
+  rotates the local password hash in place, and invalidates older REST, SSE,
+  and WebSocket tokens after a password change until upstream CloudCLI ships
+  equivalent support.
 - Build-time upstream checks: verify CloudCLI's WebSocket binary-frame handling
   provider model command flow, Codex final exit codes, Apprise call sites, and
   Codex provider completion fields are present in the compiled runtime.
 
-The unmodified upstream package is available from the links above, and the
-HolyClaude modifications are visible in the public Dockerfile.
+The unmodified upstream package is available from the links above. HolyClaude's
+source overlay, artifact manifest, and Dockerfile checks are included in the
+public source release.
 
 ### Bundled CloudCLI Plugins
 

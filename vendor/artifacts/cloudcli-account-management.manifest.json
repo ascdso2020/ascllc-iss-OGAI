@@ -1,0 +1,47 @@
+{
+  "bridge": "cloudcli-account-management",
+  "state": "holyclaude-bridge-complete",
+  "upstream": {
+    "repository": "https://github.com/siteboon/claudecodeui.git",
+    "commit": "5884573a6975f53381759a28280afd9c8bb332c4",
+    "package": "@cloudcli-ai/cloudcli",
+    "version": "1.36.1",
+    "license": "AGPL-3.0-or-later"
+  },
+  "build": {
+    "node": "v24.18.0",
+    "npm": "11.16.0",
+    "commands": [
+      "npm ci",
+      "npm run typecheck",
+      "npm run build",
+      "npm run lint",
+      "npm pack"
+    ],
+    "generatedAt": "2026-07-09T00:00:00Z",
+    "sourceDateNote": "Timestamp is fixed in this manifest so reproducibility checks compare stable fields."
+  },
+  "artifact": {
+    "file": "cloudcli-ai-cloudcli-1.36.1-holyclaude-account-management.tgz",
+    "sha256": "9e702624549e28ec20b4b1805ca70225e677f356b796a247c241e3bbcac7ef66",
+    "size": 4299848,
+    "packageFileListSha256": "2a7dec5bcc8bd261eb4fd911458617be0b00cd2e9157c056a41fc97f5118c32b"
+  },
+  "patches": [
+    {
+      "file": "0001-local-account-management.patch",
+      "sha256": "b0c2c2ff026654e8c40e312a1f49a27ee63ab1169ad25e71a500ad9617360722"
+    }
+  ],
+  "verification": {
+    "detector": "scripts/verify-cloudcli-account-management-support.mjs",
+    "expectedState": "holyclaude-bridge-complete",
+    "existingHolyClaudeRuntimePatchesRunAfterInstall": true
+  },
+  "upstreamRefs": [
+    "https://github.com/siteboon/claudecodeui/issues/797",
+    "https://github.com/siteboon/claudecodeui/pull/928",
+    "https://github.com/siteboon/claudecodeui/pull/526"
+  ],
+  "removal": "Remove when a fixed upstream npm package verifies as upstream-complete without HolyClaude bridge markers."
+}

@@ -4,6 +4,18 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.6] - 07/09/2026
+
+### Added
+- Added a temporary CloudCLI account-management bridge with local Logout and Change Password controls for the bundled web UI.
+- Added a detector and manifest for the bridge so HolyClaude can skip the overlay once CloudCLI publishes complete upstream support.
+
+### Changed
+- Updated the vendored `@cloudcli-ai/cloudcli` package baseline to 1.36.1 using a source-level account-management overlay.
+
+### Fixed
+- Kept password changes from requiring `auth.db` deletion by rotating local account credentials in place and forcing older REST, SSE, and WebSocket tokens to sign in again.
+
 ## [1.4.5] - 07/09/2026
 
 ### Fixed
