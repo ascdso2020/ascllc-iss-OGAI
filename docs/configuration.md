@@ -41,6 +41,24 @@ Docker Compose also supports a local `.env` file for variable interpolation. Hol
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js heap memory limit in MB |
+| `HOLYCLAUDE_BASE_PATH` | *(unset)* | Optional web UI subpath such as `/holyclaude`. Use this only when a reverse proxy mounts HolyClaude below a path. No trailing slash. |
+
+### Web UI Base Path
+
+Leave `HOLYCLAUDE_BASE_PATH` unset when HolyClaude is served at the hostname root. Set it only when your proxy mounts the UI below a path.
+
+```yaml
+environment:
+  - HOLYCLAUDE_BASE_PATH=/holyclaude
+```
+
+Tailscale Serve example:
+
+```bash
+sudo tailscale serve --bg --https=443 --set-path=/holyclaude http://127.0.0.1:3001
+```
+
+The value must start with `/` and must not end with `/`. HolyClaude keeps assets, API calls, WebSockets, service worker files, manifest icons, CSS assets, and deep links on that path.
 
 ### Git Identity
 

@@ -432,6 +432,13 @@ services:
       # - OPENAI_API_KEY=your_key
       # - CURSOR_API_KEY=your_key
       #
+      # WEB UI BASE PATH (optional)
+      # Use only when a reverse proxy mounts HolyClaude below a path.
+      # Example: Tailscale Serve --set-path=/holyclaude
+      # Do not add a trailing slash.
+      #
+      # - HOLYCLAUDE_BASE_PATH=/holyclaude
+      #
       # CODEX PERMISSION MODES (optional)
       # CloudCLI Codex chat reads HOLYCLAUDE_CODEX_CHAT_PERMISSION_MODE at runtime.
       # Raw codex CLI reads HOLYCLAUDE_CODEX_CLI_PERMISSION_MODE only when first creating ~/.codex/config.toml.
@@ -500,6 +507,7 @@ The complete reference. Every variable, what it defaults to, what it does.
 | `PUID` | `1000` | Container user ID for Docker-style UID/GID remapping |
 | `PGID` | `1000` | Container group ID for Docker-style UID/GID remapping |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Node.js heap memory limit in MB |
+| `HOLYCLAUDE_BASE_PATH` | *(unset)* | Optional web UI subpath such as `/holyclaude` for Tailscale Serve `--set-path` or reverse proxies |
 | `GIT_USER_NAME` | `HolyClaude User` | Git commit author (set once on first boot) |
 | `GIT_USER_EMAIL` | `noreply@holyclaude.local` | Git commit email (set once on first boot) |
 | `CHOKIDAR_USEPOLLING` | *(unset)* | Set to `1` for SMB/CIFS — enables polling file watchers |
@@ -969,6 +977,23 @@ Both give you:
 - Encrypted transport end to end
 - Real identity-based auth (not a shared password)
 - Audit logs
+
+### Tailscale subpath mounts
+
+If you mount HolyClaude below a path, set the same path inside the container:
+
+```yaml
+environment:
+  - HOLYCLAUDE_BASE_PATH=/holyclaude
+```
+
+Then publish that path with Tailscale Serve:
+
+```bash
+sudo tailscale serve --bg --https=443 --set-path=/holyclaude http://127.0.0.1:3001
+```
+
+Use no trailing slash in `HOLYCLAUDE_BASE_PATH`. If you serve HolyClaude at the hostname root, leave this unset.
 
 ### Optional SSH and Mosh
 

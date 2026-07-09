@@ -6,6 +6,29 @@ Solutions to common issues when running HolyClaude.
 
 ## Common Issues
 
+### Web UI breaks under a Tailscale or reverse-proxy subpath
+
+**Symptom:** Serving at root works, but a path mount such as `/holyclaude` loads a broken page or requests `/assets`, `/api`, `/ws`, `/shell`, `/sw.js`, or `/manifest.json` from the hostname root.
+
+**Cause:** The proxy mounted HolyClaude under a path, but the container was not told which base path to use.
+
+**Fix:** Set the base path and recreate the container:
+
+```yaml
+environment:
+  - HOLYCLAUDE_BASE_PATH=/holyclaude
+```
+
+Then publish the same path through Tailscale Serve:
+
+```bash
+sudo tailscale serve --bg --https=443 --set-path=/holyclaude http://127.0.0.1:3001
+```
+
+Do not add a trailing slash. If you serve HolyClaude at the hostname root, leave `HOLYCLAUDE_BASE_PATH` unset.
+
+---
+
 ### SSH does not start
 
 **Symptom:** `HOLYCLAUDE_SSH_ENABLE=true` is set, but port `22` is not listening inside the container.

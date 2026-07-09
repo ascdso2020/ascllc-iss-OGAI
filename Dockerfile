@@ -188,6 +188,7 @@ COPY vendor/artifacts/cloudcli-account-management.manifest.json /tmp/vendor/clou
 # ---------- CloudCLI (web UI for Claude Code) ----------
 RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli.tgz
 COPY scripts/patch-cloudcli-apprise-notifications.mjs /tmp/patch-cloudcli-apprise-notifications.mjs
+COPY scripts/patch-cloudcli-base-path.mjs /tmp/patch-cloudcli-base-path.mjs
 COPY scripts/patch-cloudcli-codex-complete-exit-code.mjs /tmp/patch-cloudcli-codex-complete-exit-code.mjs
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
 COPY scripts/patch-cloudcli-disable-self-update.mjs /tmp/patch-cloudcli-disable-self-update.mjs
@@ -212,6 +213,15 @@ RUN CLOUDCLI_CODEX="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-serve
     grep -q "exitCode: terminalFailure ? 1 : 0" "$CLOUDCLI_CODEX" && \
     grep -q "exitCode: 1" "$CLOUDCLI_CODEX" && \
     echo "[patch] Codex final completion exitCode fix already present upstream"
+
+# patch: support serving CloudCLI below a reverse-proxy subpath (issue #64)
+RUN node /tmp/patch-cloudcli-base-path.mjs && rm -f /tmp/patch-cloudcli-base-path.mjs
+RUN CLOUDCLI_SERVER="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/index.js" && \
+    CLOUDCLI_WS_SERVER="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/websocket/services/websocket-server.service.js" && \
+    grep -q "HOLYCLAUDE_BASE_PATH" "$CLOUDCLI_SERVER" && \
+    grep -q "sendHolyClaudeIndexHtml" "$CLOUDCLI_SERVER" && \
+    grep -q "stripHolyClaudeBasePathFromPathname" "$CLOUDCLI_WS_SERVER" && \
+    echo "[patch] CloudCLI base path support applied to runtime"
 
 # patch: bridge Codex CloudCLI lifecycle events to Apprise (issue #17)
 RUN node /tmp/patch-cloudcli-apprise-notifications.mjs && rm -f /tmp/patch-cloudcli-apprise-notifications.mjs

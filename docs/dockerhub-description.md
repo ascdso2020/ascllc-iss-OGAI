@@ -89,10 +89,26 @@ Credentials are stored locally in your bind-mounted `./data/claude` directory. H
 | `NOTIFY_PUSHOVER` | Pushover URL for notifications | unset |
 | `NOTIFY_SLACK` | Slack webhook URL for notifications | unset |
 | `NOTIFY_URLS` | Catch-all Apprise notification URLs | unset |
+| `HOLYCLAUDE_BASE_PATH` | Optional web UI subpath such as `/holyclaude` | unset |
 | `HOLYCLAUDE_SSH_ENABLE` | Optional key-only SSH service | `false` |
 | `HOLYCLAUDE_MOSH_ENABLE` | Optional Mosh UDP session support | `false` |
 
 For rootless Podman on SELinux hosts, create `data/claude` and `workspace` first, then use `docker-compose.podman-rootless.yaml`. It uses `userns_mode: "keep-id:uid=1000,gid=1000"` and `:Z` labels so host and container edits to `/workspace` stay under the same user. Do not add `:U` to `/workspace` unless you want Podman to rewrite host ownership for the container namespace.
+
+## Reverse Proxy Subpaths
+
+If Tailscale Serve or another proxy mounts HolyClaude below a path, pass the same path to the container:
+
+```yaml
+environment:
+  - HOLYCLAUDE_BASE_PATH=/holyclaude
+```
+
+```bash
+sudo tailscale serve --bg --https=443 --set-path=/holyclaude http://127.0.0.1:3001
+```
+
+Leave it unset for root-hostname serving.
 
 ## Volumes
 

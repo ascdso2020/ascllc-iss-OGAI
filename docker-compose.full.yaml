@@ -74,6 +74,11 @@ services:
       # - OPENAI_API_KEY=
       # - CURSOR_API_KEY=
 
+      # --- Web UI base path (optional) ---
+      # Use only when a reverse proxy mounts HolyClaude below a path. No trailing slash.
+      # Example: tailscale serve --set-path=/holyclaude http://127.0.0.1:3001
+      # - HOLYCLAUDE_BASE_PATH=/holyclaude
+
       # --- Codex permission modes (optional) ---
       # CloudCLI Codex chat runtime mode. Valid: default, acceptEdits, bypassPermissions.
       # Recommended: acceptEdits. bypassPermissions gives full access with no approval;

@@ -4,6 +4,14 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.7] - 07/09/2026
+
+### Added
+- Added `HOLYCLAUDE_BASE_PATH` for serving the web UI under a reverse-proxy subpath such as `/holyclaude`.
+
+### Fixed
+- Kept CloudCLI assets, API calls, SSE streams, WebSockets, service worker files, manifest icons, CSS font assets, and deep links on the configured subpath instead of leaking back to `/`.
+
 ## [1.4.6] - 07/09/2026
 
 ### Added
