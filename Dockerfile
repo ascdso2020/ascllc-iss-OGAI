@@ -24,7 +24,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DBUS_SESSION_BUS_ADDRESS=disabled: \
     CHROMIUM_FLAGS="--no-sandbox --disable-gpu --disable-dev-shm-usage" \
     CHROME_PATH=/usr/bin/chromium \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    NODE_PATH=/usr/local/lib/node_modules
 
 # ---------- s6-overlay v3 (multi-arch) ----------
 RUN apt-get update && apt-get install -y --no-install-recommends xz-utils curl ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -42,8 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget jq ripgrep fd-find unzip zip tree tmux fzf bat bubblewrap \
     # Build tools
     build-essential pkg-config python3 python3-pip python3-venv \
-    # Browser (Playwright/Puppeteer)
-    chromium \
+    # Browser runtime dependencies are installed by Playwright below.
     # Fonts
     fonts-liberation2 fonts-dejavu-core fonts-noto-core fonts-noto-color-emoji fonts-inter \
     # Locale support
@@ -110,7 +111,8 @@ RUN rm -f /home/claude/.claude.json
 ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ---------- npm global packages (slim — always installed) ----------
-RUN npm i -g \
+RUN PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i -g \
+    playwright@1.61.0 \
     typescript@6.0.3 tsx@4.23.0 \
     pnpm@11.10.0 \
     vite@8.1.3 esbuild@0.28.1 \
@@ -143,6 +145,20 @@ RUN pip install --no-cache-dir --break-system-packages \
     tree-sitter==0.26.0 tree-sitter-language-pack==1.6.2 stevedore==5.9.0 \
     playwright==1.61.0 \
     apprise==1.12.0
+
+COPY scripts/holyclaude-chromium /usr/local/bin/holyclaude-chromium
+RUN mkdir -p /ms-playwright && \
+    playwright install --with-deps --no-shell chromium && \
+    rm -rf /var/lib/apt/lists/* && \
+    chmod -R a+rX /ms-playwright && \
+    chmod +x /usr/local/bin/holyclaude-chromium && \
+    ln -sf /usr/local/bin/holyclaude-chromium /usr/bin/chromium && \
+    NODE_CHROMIUM_PATH="$(node --input-type=module -e "import { createRequire } from 'node:module'; import { existsSync } from 'node:fs'; const require = createRequire('file:///usr/local/lib/node_modules/playwright/package.json'); const playwright = require('playwright'); const executablePath = playwright.chromium.executablePath(); if (!existsSync(executablePath)) throw new Error('missing Node Playwright Chromium at ' + executablePath); console.log(executablePath);")" && \
+    PYTHON_CHROMIUM_PATH="$(python3 -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); print(p.chromium.executable_path); p.stop()")" && \
+    test "$NODE_CHROMIUM_PATH" = "$PYTHON_CHROMIUM_PATH" && \
+    test -x "$NODE_CHROMIUM_PATH" && \
+    runuser -u claude -- test -r "$NODE_CHROMIUM_PATH" && \
+    runuser -u claude -- test -x "$NODE_CHROMIUM_PATH"
 
 # ---------- Python packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
@@ -187,14 +203,23 @@ COPY vendor/artifacts/cloudcli-account-management.manifest.json /tmp/vendor/clou
 
 # ---------- CloudCLI (web UI for Claude Code) ----------
 RUN npm i -g /tmp/vendor/cloudcli-ai-cloudcli.tgz && rm -f /tmp/vendor/cloudcli-ai-cloudcli.tgz
+RUN node --input-type=module -e "import { createRequire } from 'node:module'; import { existsSync } from 'node:fs'; const require = createRequire('file:///usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/index.js'); const playwright = require('playwright'); const executablePath = playwright.chromium.executablePath(); if (!existsSync(executablePath)) throw new Error('missing CloudCLI-resolved Playwright Chromium at ' + executablePath); console.log(executablePath);"
 COPY scripts/patch-cloudcli-apprise-notifications.mjs /tmp/patch-cloudcli-apprise-notifications.mjs
 COPY scripts/patch-cloudcli-base-path.mjs /tmp/patch-cloudcli-base-path.mjs
+COPY scripts/patch-cloudcli-browser-runtime.mjs /tmp/patch-cloudcli-browser-runtime.mjs
 COPY scripts/patch-cloudcli-codex-complete-exit-code.mjs /tmp/patch-cloudcli-codex-complete-exit-code.mjs
 COPY scripts/patch-cloudcli-codex-permissions.mjs /tmp/patch-cloudcli-codex-permissions.mjs
 COPY scripts/patch-cloudcli-disable-self-update.mjs /tmp/patch-cloudcli-disable-self-update.mjs
 COPY --chown=claude:claude scripts/patch-cloudcli-web-terminal-rendering.mjs /tmp/patch-cloudcli-web-terminal-rendering.mjs
 COPY scripts/verify-cloudcli-account-management-support.mjs /tmp/verify-cloudcli-account-management-support.mjs
 RUN touch /usr/local/lib/node_modules/@cloudcli-ai/cloudcli/.env
+
+# patch: launch CloudCLI Browser Use with HolyClaude's canonical Chromium
+RUN node /tmp/patch-cloudcli-browser-runtime.mjs && rm -f /tmp/patch-cloudcli-browser-runtime.mjs
+RUN CLOUDCLI_BROWSER_USE="/usr/local/lib/node_modules/@cloudcli-ai/cloudcli/dist-server/server/modules/browser-use/browser-use.service.js" && \
+    grep -Fq "// HolyClaude canonical browser runtime" "$CLOUDCLI_BROWSER_USE" && \
+    grep -Fq "executablePath: process.env.CHROME_PATH," "$CLOUDCLI_BROWSER_USE" && \
+    echo "[patch] CloudCLI Browser Use canonical Chromium applied to runtime"
 
 # patch: disable CloudCLI npm self-update inside HolyClaude (issue #50)
 RUN node /tmp/patch-cloudcli-disable-self-update.mjs && rm -f /tmp/patch-cloudcli-disable-self-update.mjs

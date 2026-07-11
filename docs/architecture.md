@@ -132,9 +132,22 @@ done
 exec Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp
 ```
 
-- Provides a virtual display at `:99` (1920x1080, 24-bit color)
-- Required for Chromium, Playwright, Lighthouse — they need a display even in headless mode
+- Provides a compatibility display at `:99` (1920x1080, 24-bit color)
+- Supports tools that use a headed display; modern headless Chromium, Playwright, and Lighthouse do not universally require Xvfb
 - `-nolisten tcp` prevents remote X connections (security)
+
+### Browser Runtime
+
+v1.4.8 bakes the browser stack at build time:
+
+- Playwright 1.61.0 is installed for both Node and Python
+- Playwright Chromium build 1228 is installed in both image variants for `amd64` and `arm64`
+- `/usr/bin/chromium` remains the supported wrapper, and `CHROME_PATH` / `PUPPETEER_EXECUTABLE_PATH` still point there
+- HolyClaude patches CloudCLI Browser Use to launch that same wrapper instead of Playwright's optional headless-shell binary
+- There is no runtime browser download
+- Lighthouse ships in the full image only
+
+Earlier 1.4.7 passed native `amd64` and `arm64` browser runs, but the apt Chromium package was still unpinned. v1.4.8 removes that moving target.
 
 ### Optional SSH Service
 

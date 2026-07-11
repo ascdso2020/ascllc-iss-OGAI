@@ -114,10 +114,12 @@ The `--break-system-packages` flag is required (no venv in container context).
 - **Image processing:** libvips (via `vips` command or sharp)
 
 ### Browser:
-- **Chromium** at `/usr/bin/chromium` — headless by default
-- **Playwright** installed — use for browser automation, screenshots, testing
-- Xvfb provides a virtual display so Chromium has a screen to render to
+- **Chromium** at `/usr/bin/chromium` — supported wrapper; `CHROME_PATH` and `PUPPETEER_EXECUTABLE_PATH` stay pointed here
+- **Playwright 1.61.0** installed for Node and Python — baked at build time, no runtime browser download
+- **Playwright Chromium build 1228** is baked into the image for `amd64` and `arm64`
+- Xvfb provides a compatibility display at `:99` for tools that use a headed display
 - Flags preset: `--no-sandbox --disable-gpu --disable-dev-shm-usage`
+- Lighthouse and `@lhci/cli` are full-image tools
 
 ## GitHub CLI (gh)
 
@@ -188,7 +190,7 @@ Codex has separate configurable near-parity controls:
 
 - Use the **Web Terminal** plugin in CloudCLI instead of "Continue in Shell" (known CloudCLI bug)
 - If Web Terminal text shows black squares after updating, run `localStorage.setItem('web-terminal-disable-webgl', 'true')` in the CloudCLI browser console and reopen the terminal
-- Chromium needs `shm_size: 2g` or higher in docker-compose to avoid crashes
+- Chromium needs `shm_size: 2g` or higher in docker-compose to avoid crashes; an immediate SIGTRAP or exit 133 is a separate browser/runtime failure
 - If on SMB/CIFS mounts, enable `CHOKIDAR_USEPOLLING=1` and `WATCHFILES_FORCE_POLLING=true`
 - SQLite databases should NOT be stored on network mounts (file locking fails on CIFS)
 

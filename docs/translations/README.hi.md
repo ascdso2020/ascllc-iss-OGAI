@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ docker compose up -d
 
 **बस यही पूरा सेटअप है। आप कर चुके हैं।**
 
-> **`SYS_ADMIN` + `seccomp=unconfined` क्यों?** Chromium को Docker के अंदर चलाने के लिए ये चाहिए — यह किसी भी कंटेनराइज़्ड ब्राउज़र के लिए मानक है (Playwright docs, Puppeteer docs, हर CI pipeline जो browser tests चलाती है)। इनके बिना, Chromium startup पर crash हो जाता है। यह HolyClaude के लिए कोई अनोखा security risk नहीं है।
+> **ये browser capabilities क्यों?** यह रिलीज HolyClaude का current browser profile बनाए रखती है। `SYS_ADMIN` और `seccomp=unconfined` process privileges बढ़ाते हैं और isolation कम करते हैं; `SYS_PTRACE` debugging के लिए है। v1.4.8 के लिए इस profile को जस का तस रखें और hardening को अलग बदलाव मानें।
 
-> **`shm_size: 2g` क्यों?** Docker डिफ़ॉल्ट रूप से containers को 64MB shared memory देता है। Chromium tab rendering के लिए `/dev/shm` का भारी उपयोग करता है। 64MB पर, tabs randomly crash होते हैं। किसी भी Chromium-in-Docker सेटअप के लिए 2GB अनुशंसित न्यूनतम है।
+> **`shm_size: 2g` क्यों?** Docker डिफ़ॉल्ट रूप से containers को 64MB shared memory देता है। HolyClaude इस रिलीज़ के लिए 2GB को retained default रखता है क्योंकि Chromium tab rendering के लिए `/dev/shm` का भारी उपयोग करता है। 64MB पर tabs crash होते हैं; heavy browser use के लिए 4GB करें।
 
 <p align="right">
   <a href="#top">↑ शीर्ष पर वापस जाएं</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI वेब UI serve करता है** — Port 3001। Claude Code का browser-based interface जिसमें project management, multiple sessions, और plugins (project stats + web terminal शामिल) हैं।
 
-5. **Xvfb एक virtual display प्रदान करता है** — Chromium को render करने के लिए एक screen चाहिए, यहां तक कि "headless" mode में भी। Xvfb उसे `:99` पर एक 1920x1080 virtual display देता है। इसीलिए Playwright, screenshots, और Lighthouse out of the box काम करते हैं।
+5. **Xvfb compatibility display देता है** — Visible display इस्तेमाल करने वाले tools के लिए Xvfb `:99` पर उपलब्ध रहता है। Modern headless Chromium, Playwright और Lighthouse को हर स्थिति में Xvfb की जरूरत नहीं होती।
 
 पूरे technical deep-dive के लिए [docs/architecture.md](docs/architecture.md) देखें — जिसमें यह भी शामिल है कि हमने supervisord पर s6 क्यों चुना, plugins image में क्यों baked हैं, और `su` के बजाय `runuser` क्यों।
 

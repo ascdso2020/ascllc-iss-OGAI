@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ docker compose up -d
 
 **配置到此结束，你已经准备好了。**
 
-> **为什么需要 `SYS_ADMIN` + `seccomp=unconfined`？** Chromium 在 Docker 中运行需要这些，这是任何容器化浏览器的标准做法（Playwright 文档、Puppeteer 文档、所有运行浏览器测试的 CI 流水线均如此）。没有它们，Chromium 会在启动时崩溃。这不是 HolyClaude 特有的安全风险。
+> **为什么是这些浏览器权限？** 这个版本保留了 HolyClaude 当前的浏览器配置。`SYS_ADMIN` 和 `seccomp=unconfined` 会扩大进程权限并降低隔离；`SYS_PTRACE` 用于调试。v1.4.8 请保持这个配置不变，把加固当成单独的改动。
 
-> **为什么需要 `shm_size: 2g`？** Docker 默认给容器 64MB 的共享内存。Chromium 大量使用 `/dev/shm` 进行标签页渲染。在 64MB 时，标签页会随机崩溃。2GB 是任何 Chromium-in-Docker 配置的推荐最低值。
+> **为什么是 `shm_size: 2g`？** Docker 默认只给容器 64MB 共享内存。HolyClaude 把 2GB 保留为本版本的默认值，因为 Chromium 在标签页渲染时会大量使用 `/dev/shm`。64MB 会让标签页崩掉；浏览器用得多就升到 4GB。
 
 <p align="right">
   <a href="#top">↑ 回到顶部</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI 提供 Web UI** — 端口 3001。基于浏览器的 Claude Code 界面，支持项目管理、多会话和插件（项目统计 + Web 终端均已预装）。
 
-5. **Xvfb 提供虚拟显示器** — Chromium 即使在"无头"模式下也需要一个屏幕来渲染。Xvfb 在 `:99` 提供一个 1920x1080 的虚拟显示器。这就是为什么 Playwright、截图和 Lighthouse 都能开箱即用。
+5. **Xvfb 提供兼容显示器** — Xvfb 继续在 `:99` 为使用可见显示器的工具提供兼容环境。现代无头 Chromium、Playwright 和 Lighthouse 并不总是需要 Xvfb。
 
 查看 [docs/architecture.md](docs/architecture.md) 获取完整技术深入说明，包括我们为何选择 s6 而非 supervisord、为何将插件内置到镜像中，以及为何使用 `runuser` 而非 `su`。
 

@@ -13,10 +13,10 @@ services:
     shm_size: 2g
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN      # Required for Chromium sandboxing
-      - SYS_PTRACE      # Required for debugging
+      - SYS_ADMIN      # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE      # Debugging-related capability
     security_opt:
-      - seccomp=unconfined  # Required for Chromium in Docker
+      - seccomp=unconfined  # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"     # CloudCLI web UI, localhost only
     volumes:

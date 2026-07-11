@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ docker compose up -d
 
 **설정은 이게 전부입니다. 완료되었습니다.**
 
-> **왜 `SYS_ADMIN` + `seccomp=unconfined`인가요?** Chromium은 Docker 내부에서 실행하려면 이것들이 필요합니다 — Playwright 문서, Puppeteer 문서, 브라우저 테스트를 실행하는 모든 CI 파이프라인의 표준입니다. 없으면 Chromium이 시작 시 충돌합니다. 이것은 HolyClaude에만 있는 보안 위험이 아닙니다.
+> **왜 이런 브라우저 권한인가요?** 이번 릴리스는 HolyClaude의 현재 브라우저 프로필을 유지합니다. `SYS_ADMIN`과 `seccomp=unconfined`는 프로세스 권한을 넓히고 격리를 약화시키며, `SYS_PTRACE`는 디버깅용입니다. v1.4.8에서는 이 프로필을 그대로 유지하고, 하드닝은 별도 변경으로 다루세요.
 
-> **왜 `shm_size: 2g`인가요?** Docker는 기본적으로 컨테이너에 64MB의 공유 메모리를 제공합니다. Chromium은 탭 렌더링을 위해 `/dev/shm`을 많이 사용합니다. 64MB에서는 탭이 무작위로 충돌합니다. 2GB는 Docker에서 Chromium을 실행하는 모든 설정에서 권장하는 최솟값입니다.
+> **왜 `shm_size: 2g`인가요?** Docker는 기본으로 공유 메모리 64MB만 줍니다. HolyClaude는 이번 릴리스의 유지된 기본값으로 2GB를 둡니다. Chromium이 탭 렌더링에 `/dev/shm`을 많이 쓰기 때문입니다. 64MB에서는 탭이 깨집니다. 브라우저 사용이 많으면 4GB로 올리세요.
 
 <p align="right">
   <a href="#top">↑ 맨 위로</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI가 웹 UI를 제공합니다** — 포트 3001. 프로젝트 관리, 다중 세션, 플러그인 (프로젝트 통계 + 웹 터미널 포함)이 있는 Claude Code용 브라우저 기반 인터페이스.
 
-5. **Xvfb가 가상 디스플레이를 제공합니다** — Chromium은 "헤드리스" 모드에서도 렌더링할 화면이 필요합니다. Xvfb는 `:99`에서 1920x1080 가상 디스플레이를 제공합니다. 이것이 Playwright, 스크린샷, Lighthouse가 기본으로 작동하는 이유입니다.
+5. **Xvfb가 호환 디스플레이를 제공합니다** — 화면 표시를 사용하는 도구를 위해 Xvfb를 `:99`에 유지합니다. 최신 헤드리스 Chromium, Playwright, Lighthouse가 항상 Xvfb를 필요로 하는 것은 아닙니다.
 
 s6를 supervisord 대신 선택한 이유, 플러그인이 이미지에 내장된 이유, `su` 대신 `runuser`를 사용하는 이유 등 전체 기술 심층 분석은 [docs/architecture.md](docs/architecture.md)를 참조하세요.
 

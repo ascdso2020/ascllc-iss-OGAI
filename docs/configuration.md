@@ -250,13 +250,13 @@ HolyClaude requires these Docker capabilities for Chromium to work:
 
 ```yaml
 cap_add:
-  - SYS_ADMIN      # Chromium sandboxing (namespaces)
-  - SYS_PTRACE      # Debugging (strace, lsof)
+  - SYS_ADMIN      # Current browser profile; hardening is a separate pass
+  - SYS_PTRACE      # Debugging-related capability
 security_opt:
-  - seccomp=unconfined  # Chromium syscall requirements
+  - seccomp=unconfined  # Current browser profile; hardening is a separate pass
 ```
 
-These are common for Chromium-in-Docker setups. Without them, Chromium may crash on startup. They also reduce container isolation, so avoid publishing the web UI directly to a public interface.
+This is HolyClaude's retained browser profile for v1.4.8. `SYS_ADMIN` and `seccomp=unconfined` broaden process privileges and reduce isolation; `SYS_PTRACE` is debugging-related. They are not universal Chromium requirements. Keep the profile for trusted workloads in this release and test any hardening change separately.
 
 ---
 

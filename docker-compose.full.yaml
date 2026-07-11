@@ -13,10 +13,10 @@ services:
     shm_size: 2g
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN
-      - SYS_PTRACE
+      - SYS_ADMIN  # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE # Debugging-related capability
     security_opt:
-      - seccomp=unconfined
+      - seccomp=unconfined  # Current browser profile for this release; hardening is separate
     # extra_hosts:
     #   - "host.docker.internal:host-gateway"  # Linux: let the container reach services on the Docker host (e.g., Ollama)
     ports:

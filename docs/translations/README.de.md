@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ docker compose up -d
 
 **Das ist das gesamte Setup. Du bist fertig.**
 
-> **Warum `SYS_ADMIN` + `seccomp=unconfined`?** Chromium benötigt diese, um in Docker zu laufen — das ist Standard für jeden containerisierten Browser (Playwright-Dokumentation, Puppeteer-Dokumentation, jede CI-Pipeline, die Browser-Tests ausführt). Ohne sie stürzt Chromium beim Start ab. Das ist kein Sicherheitsrisiko, das spezifisch für HolyClaude ist.
+> **Warum diese Browser-Rechte?** Diese Version behält HolyClaudes aktuelles Browser-Profil bei. `SYS_ADMIN` und `seccomp=unconfined` erweitern Prozessrechte und verringern die Isolation; `SYS_PTRACE` dient dem Debugging. Lass dieses Profil für v1.4.8 unverändert und behandle Hardening als separaten Schritt.
 
-> **Warum `shm_size: 2g`?** Docker gibt Containern standardmäßig 64 MB Shared Memory. Chromium verwendet `/dev/shm` stark für das Tab-Rendering. Bei 64 MB stürzen Tabs zufällig ab. 2 GB ist das empfohlene Minimum für jedes Chromium-in-Docker-Setup.
+> **Warum `shm_size: 2g`?** Docker gibt Containern standardmäßig 64 MB Shared Memory. HolyClaude behält 2 GB als beibehaltenen Standard für diese Version bei, weil Chromium `/dev/shm` stark für das Tab-Rendering nutzt. Bei 64 MB brechen Tabs; bei intensivem Browser-Einsatz auf 4 GB erhöhen.
 
 <p align="right">
   <a href="#top">↑ nach oben</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI stellt die Web-UI bereit** — Port 3001. Browser-basierte Schnittstelle zu Claude Code mit Projektverwaltung, mehreren Sessions und Plugins (Projektstatistiken + Web-Terminal inklusive).
 
-5. **Xvfb stellt ein virtuelles Display bereit** — Chromium braucht einen Bildschirm zum Rendern, auch im "Headless"-Modus. Xvfb gibt ihm ein virtuelles 1920x1080-Display bei `:99`. Deshalb funktionieren Playwright, Screenshots und Lighthouse sofort.
+5. **Xvfb stellt ein Kompatibilitätsdisplay bereit** — Xvfb bleibt unter `:99` für Tools verfügbar, die ein sichtbares Display verwenden. Modernes Headless-Chromium, Playwright und Lighthouse benötigen Xvfb nicht grundsätzlich.
 
 Siehe [docs/architecture.md](docs/architecture.md) für den vollständigen technischen Tiefen-Einblick — einschließlich warum wir s6 statt supervisord gewählt haben, warum Plugins ins Image eingebaut sind und warum `runuser` statt `su`.
 

@@ -6,15 +6,17 @@ HolyClaude runs AI coding agents inside a Docker container with elevated capabil
 
 ## Container Capabilities
 
-HolyClaude requires the following Docker capabilities:
+HolyClaude keeps the following browser-container defaults in the compose files:
 
-| Capability | Why | Risk |
-|-----------|-----|------|
-| `SYS_ADMIN` | Chromium sandboxing (Linux namespaces) | Standard for any Chromium-in-Docker setup |
-| `SYS_PTRACE` | Debugging tools (strace, lsof) | Allows process inspection within the container |
-| `seccomp=unconfined` | Chromium syscall requirements | Removes syscall filtering for the container |
+| Capability | Why it is present | Notes |
+|-----------|-------------------|------|
+| `SYS_ADMIN` | Current browser profile for this release | Chromium does not universally require it; hardening is a separate pass |
+| `SYS_PTRACE` | Debugging tools (strace, lsof) | Debugging-related, not a Chromium requirement |
+| `seccomp=unconfined` | Current browser profile for this release | Keep the release's browser launch path as shipped; hardening is separate |
 
-These are required for Chromium to function and are standard across Playwright, Puppeteer, and CI/CD browser testing setups. They do **not** grant the container access to the host system beyond what Docker normally allows.
+These are the current compose defaults for HolyClaude's browser profile. `SYS_ADMIN` and `seccomp=unconfined` broaden process privileges and reduce isolation, and `SYS_PTRACE` is debugging-related. Use them only for trusted workloads, and treat any hardening pass as a separate change.
+
+`/dev/shm` exhaustion and an immediate SIGTRAP or exit 133 are separate failure modes. Treat them separately when you troubleshoot browser launches.
 
 ## Permission Modes
 
@@ -58,7 +60,7 @@ The vendored CloudCLI version must stay at or above the fixes for:
 | `CVE-2026-31862` / `GHSA-f2fc-vc88-6w7q` | Authenticated command injection in Git-related endpoints | `1.24.0` |
 | `CVE-2026-31975` / `GHSA-gv8f-wpm2-m5wr` | WebSocket auth/JWT weakness with shell injection risk | `1.25.0` |
 
-HolyClaude v1.4.3 vendors CloudCLI `1.35.1`.
+HolyClaude v1.4.8 vendors CloudCLI `1.36.1`.
 
 ## Credential Storage
 

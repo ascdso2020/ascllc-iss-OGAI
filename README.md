@@ -45,6 +45,8 @@ One command. Full AI development workstation. Claude Code, web UI, headless brow
 
 You know the drill. You want Claude Code. But you also want it in a browser. With a headless browser for screenshots and testing. With Playwright configured. With every AI CLI. With TypeScript, Python, deployment tools, database clients, GitHub CLI.
 
+In v1.4.8, the browser stack is pinned at build time: Playwright 1.61.0 for Node and Python, Playwright Chromium build 1228, and `/usr/bin/chromium` stays the supported wrapper. There is no runtime browser download.
+
 So you start installing things. One by one. Then Chromium won't launch because Docker's shared memory is 64MB. Then Xvfb isn't configured. Then the UID inside the container doesn't match your host and everything is permission denied. Then you realize Claude Code's installer hangs when WORKDIR is root-owned. Then SQLite locks on your NAS mount. Then—
 
 **HolyClaude is the container I built after solving every single one of those problems.**
@@ -275,13 +277,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -310,9 +312,9 @@ Open `http://localhost:3001`. Create a CloudCLI account. Sign in with your Anthr
 
 **That's the whole setup. You're done.**
 
-> **Why `SYS_ADMIN` + `seccomp=unconfined`?** Chromium needs these to run inside Docker. They are common for containerized browser workloads, but they do reduce container isolation. Keep the web UI bound to `127.0.0.1` unless you put a real private tunnel or access layer in front of it.
+> **Why these browser caps?** This release keeps HolyClaude's current browser container profile in place. Chromium does not universally require `SYS_ADMIN`, `SYS_PTRACE`, or `seccomp=unconfined`, and `SYS_PTRACE` is debugging-related. Keep the web UI bound to `127.0.0.1` unless you put a real private tunnel or access layer in front of it. Treat any hardening pass as a separate change.
 
-> **Why `shm_size: 2g`?** Docker gives containers 64MB of shared memory by default. Chromium uses `/dev/shm` heavily for tab rendering. At 64MB, tabs crash randomly. 2GB is the recommended minimum for any Chromium-in-Docker setup.
+> **Why `shm_size: 2g`?** Docker gives containers 64MB of shared memory by default. HolyClaude keeps 2GB as the retained browser default for this release because Chromium uses `/dev/shm` heavily for tab rendering. At 64MB, tabs crash randomly. For heavy browser use (many tabs, complex pages), increase to 4GB.
 
 <p align="right">
   <a href="#top">↑ back to top</a>
@@ -340,10 +342,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -579,7 +581,7 @@ This is not a minimal container. This is an entire development workstation.
 | `pyyaml`, `python-dotenv` | Config file parsing |
 | `rich`, `click`, `tqdm` | Beautiful CLIs and progress bars |
 | `desloppify`, `bandit`, `tree-sitter` | Code-quality scans, Python security checks, parser-backed code analysis |
-| `playwright` | Browser automation (Chromium already configured and ready) |
+| `playwright` | Browser automation (Playwright 1.61.0, baked at build time) |
 
 </details>
 
@@ -595,7 +597,7 @@ This is not a minimal container. This is an entire development workstation.
 | `tmux` | Terminal multiplexer — run things in the background |
 | `htop`, `lsof`, `strace` | Process monitoring and debugging |
 | `imagemagick` | Image conversion (`convert`, `identify`, `mogrify`) |
-| `chromium` | Headless browser — screenshots, Playwright, Lighthouse |
+| `chromium` | Headless browser — screenshots and Playwright; `/usr/bin/chromium` stays the supported wrapper |
 | `psql`, `redis-cli`, `sqlite3` | Talk to databases directly |
 | `openssh-client`, `openssh-server`, `mosh` | SSH out, and optional key-only SSH/Mosh access into the container |
 
@@ -643,7 +645,7 @@ The full image includes everything above, plus:
 | `prisma`, `drizzle-kit` | The two most popular Node.js ORMs |
 | `pm2` | Production process manager |
 | `eas-cli` | Expo / React Native builds |
-| `lighthouse`, `@lhci/cli` | Performance auditing (Chromium is already there) |
+| `lighthouse`, `@lhci/cli` | Performance auditing (full image only; Chromium is already there) |
 | `sharp-cli` | Image processing CLI |
 | `json-server`, `http-server` | Mock REST APIs, static file serving |
 | `@marp-team/marp-cli` | Markdown to presentation slides |
@@ -792,7 +794,7 @@ graph TB
 
 4. **CloudCLI serves the web UI** — Port 3001. Browser-based interface to Claude Code with project management, multiple sessions, and plugins (project stats + web terminal included).
 
-5. **Xvfb provides a virtual display** — Chromium needs a screen to render to, even in "headless" mode. Xvfb gives it a 1920x1080 virtual display at `:99`. This is why Playwright, screenshots, and Lighthouse all work out of the box.
+5. **Xvfb provides a compatibility display** — Xvfb stays available at `:99` for tools that use a headed display. Modern headless Chromium, Playwright, and Lighthouse do not universally require Xvfb.
 
 See [docs/architecture.md](docs/architecture.md) for the full technical deep-dive — including why we chose s6 over supervisord, why plugins are baked into the image, and why `runuser` instead of `su`.
 
@@ -1192,9 +1194,9 @@ localStorage.setItem('web-terminal-disable-webgl', 'true')
 <details>
 <summary><strong>Chromium crashes / blank pages / tab failures</strong></summary>
 
-**Cause:** Insufficient shared memory. Docker defaults to 64MB.
+**Cause:** Usually insufficient shared memory. Docker defaults to 64MB. If the process exits immediately with SIGTRAP or exit 133, treat that as a separate browser/runtime failure instead of a shared-memory symptom.
 
-**Fix:** Ensure `shm_size: 2g` in your compose file. For heavy browser use (many tabs, complex pages), increase to `4g`.
+**Fix:** Ensure `shm_size: 2g` in your compose file. For heavy browser use (many tabs, complex pages), increase to `4g`. If you still get an immediate SIGTRAP, re-check the browser build path before only raising shm.
 </details>
 
 <details>

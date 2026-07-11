@@ -4,6 +4,18 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.8] - 07/11/2026
+
+### Changed
+- Pinned the browser runtime to Playwright 1.61.0 for Node and Python and baked Playwright Chromium build 1228 into the image at build time for both `amd64` and `arm64`.
+- Kept `/usr/bin/chromium` as the supported wrapper and stopped relying on a runtime browser download.
+- Kept browser tooling in both image variants while leaving Lighthouse in the full image only.
+
+### Fixed
+- Routed CloudCLI Browser Use through the supported `/usr/bin/chromium` wrapper so it launches regular Playwright Chromium instead of looking for an uninstalled headless-shell binary.
+- Corrected the browser capability wording so `SYS_ADMIN`, `SYS_PTRACE`, and `seccomp=unconfined` are documented as the current compose profile, not universal Chromium requirements.
+- Split `/dev/shm` exhaustion from immediate SIGTRAP or exit 133 launch failures so the troubleshooting path points at the right symptom.
+
 ## [1.4.7] - 07/09/2026
 
 ### Added

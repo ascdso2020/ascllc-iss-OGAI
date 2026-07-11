@@ -19,10 +19,10 @@ services:
     userns_mode: "keep-id:uid=1000,gid=1000"
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN
-      - SYS_PTRACE
+      - SYS_ADMIN  # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE # Debugging-related capability
     security_opt:
-      - seccomp=unconfined
+      - seccomp=unconfined  # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"
     volumes:

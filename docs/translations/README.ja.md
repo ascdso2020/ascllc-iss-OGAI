@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ docker compose up -d
 
 **セットアップはこれだけ。完了。**
 
-> **なぜ `SYS_ADMIN` + `seccomp=unconfined` が必要か？** Chromium を Docker 内で実行するにはこれらが必要 — コンテナ化されたブラウザ（Playwright ドキュメント、Puppeteer ドキュメント、ブラウザテストを実行するあらゆる CI パイプライン）では標準的な設定です。これらがないと Chromium は起動時にクラッシュします。HolyClaude 固有のセキュリティリスクではありません。
+> **なぜこのブラウザ権限なのか？** このリリースでは HolyClaude の現在のブラウザ設定をそのまま維持します。`SYS_ADMIN` と `seccomp=unconfined` はプロセス権限を広げて分離を弱め、`SYS_PTRACE` はデバッグ用です。v1.4.8 ではこの設定を維持し、ハードニングは別の変更として扱ってください。
 
-> **なぜ `shm_size: 2g` が必要か？** Docker はデフォルトでコンテナに 64MB の共有メモリを割り当てます。Chromium はタブのレンダリングに `/dev/shm` を多用します。64MB ではタブがランダムにクラッシュします。2GB は Chromium-in-Docker セットアップで推奨される最小値です。
+> **なぜ `shm_size: 2g` なのか？** Docker の共有メモリは既定で 64MB しかありません。HolyClaude はこのリリースの既定値として 2GB を維持しています。Chromium はタブ描画で `/dev/shm` をかなり使うためです。64MB だとタブが落ちます。ブラウザを多用するなら 4GB に増やしてください。
 
 <p align="right">
   <a href="#top">↑ トップへ戻る</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI が Web UI を提供** — ポート 3001。プロジェクト管理、複数セッション、プラグイン（プロジェクト統計 + Web ターミナル同梱）を備えた Claude Code へのブラウザベースインターフェース。
 
-5. **Xvfb が仮想ディスプレイを提供** — Chromium は「ヘッドレス」モードでも描画するスクリーンが必要。Xvfb は `:99` で 1920x1080 の仮想ディスプレイを提供する。これが Playwright、スクリーンショット、Lighthouse がすぐに動く理由だ。
+5. **Xvfb が互換ディスプレイを提供** — 表示画面を使うツール向けに Xvfb を `:99` で残している。現在のヘッドレス Chromium、Playwright、Lighthouse が常に Xvfb を必要とするわけではない。
 
 技術的な詳細 — s6 を supervisord の代わりに選んだ理由、プラグインをイメージに組み込んだ理由、`su` ではなく `runuser` を使う理由については [docs/architecture.md](docs/architecture.md) を参照。
 

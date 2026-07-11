@@ -264,13 +264,13 @@ services:
     container_name: holyclaude
     hostname: holyclaude
     restart: unless-stopped
-    shm_size: 2g                           # Chromium needs this — don't remove
+    shm_size: 2g                           # Retained browser default for this release
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium in Docker
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"              # CloudCLI web UI, localhost only
     volumes:
@@ -299,9 +299,9 @@ Abra `http://localhost:3001`. Crie uma conta CloudCLI. Entre com sua conta Anthr
 
 **Essa é toda a configuração. Você terminou.**
 
-> **Por que `SYS_ADMIN` + `seccomp=unconfined`?** O Chromium precisa disso para rodar dentro do Docker, é padrão para qualquer navegador containerizado (documentação do Playwright, Puppeteer, todo pipeline de CI que executa testes de navegador). Sem eles, o Chromium trava na inicialização. Isso não é um risco de segurança exclusivo do HolyClaude.
+> **Por que estas capacidades do navegador?** Esta versão mantém o perfil atual de navegador do HolyClaude. `SYS_ADMIN` e `seccomp=unconfined` ampliam privilégios de processo e reduzem o isolamento; `SYS_PTRACE` é para depuração. Mantenha esse perfil como está para a v1.4.8 e trate o hardening como uma mudança separada.
 
-> **Por que `shm_size: 2g`?** O Docker dá aos containers 64MB de memória compartilhada por padrão. O Chromium usa `/dev/shm` intensamente para renderização de abas. Com 64MB, as abas travam aleatoriamente. 2GB é o mínimo recomendado para qualquer configuração Chromium-in-Docker.
+> **Por que `shm_size: 2g`?** O Docker dá aos containers 64MB de memória compartilhada por padrão. O HolyClaude mantém 2GB como o padrão retido para esta versão porque o Chromium usa muito `/dev/shm` para renderização de abas. Com 64MB, as abas travam; se usar muito o navegador, suba para 4GB.
 
 <p align="right">
   <a href="#top">↑ voltar ao topo</a>
@@ -329,10 +329,10 @@ services:
     shm_size: 2g                           # Chromium shared memory — increase to 4g for heavy browser use
     network_mode: bridge
     cap_add:
-      - SYS_ADMIN                          # Required: Chromium sandboxing
-      - SYS_PTRACE                         # Required: debugging tools (strace, lsof)
+      - SYS_ADMIN                          # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE                         # Debugging-related capability (strace, lsof)
     security_opt:
-      - seccomp=unconfined                 # Required: Chromium syscall requirements
+      - seccomp=unconfined                 # Current browser profile for this release; hardening is separate
     ports:
       #
       # CloudCLI web UI — this is the only port you need.
@@ -710,7 +710,7 @@ graph TB
 
 4. **CloudCLI serve a interface web** — Porta 3001. Interface baseada em navegador para o Claude Code com gerenciamento de projetos, múltiplas sessões e plugins (estatísticas de projeto + terminal web incluídos).
 
-5. **Xvfb fornece um display virtual** — O Chromium precisa de uma tela para renderizar, mesmo no modo "headless". O Xvfb fornece um display virtual 1920x1080 em `:99`. É por isso que Playwright, capturas de tela e Lighthouse funcionam imediatamente.
+5. **Xvfb fornece um display de compatibilidade** — O Xvfb continua disponível em `:99` para ferramentas que usam um display visível. Chromium headless moderno, Playwright e Lighthouse não exigem Xvfb em todos os casos.
 
 Veja [docs/architecture.md](docs/architecture.md) para o mergulho técnico completo, incluindo por que escolhemos s6 em vez de supervisord, por que plugins estão integrados à imagem e por que `runuser` em vez de `su`.
 

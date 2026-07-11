@@ -165,9 +165,11 @@ Then close and reopen the Web Terminal tab. This keeps the Docker image the same
 
 **Symptom:** Playwright tests fail, screenshots are blank, Lighthouse hangs.
 
-**Cause:** Insufficient shared memory.
+**Cause:** Usually insufficient shared memory. Docker defaults to 64MB. If the process exits immediately with SIGTRAP or exit 133, treat that as a separate browser/runtime failure instead of a shared-memory symptom.
 
-**Fix:** Ensure `shm_size: 2g` or higher in your docker-compose file. If running many concurrent tabs, increase to `4g`.
+**Fix:** Ensure `shm_size: 2g` or higher in your docker-compose file. If running many concurrent tabs, increase to `4g`. If you still get an immediate SIGTRAP, re-check the browser build path before only raising shm.
+
+In `v1.4.8`, direct Chromium, Node Playwright, Python Playwright, and CloudCLI Browser Use all use the browser baked into the image. `/usr/bin/chromium` is the supported command; a runtime `playwright install` is not part of the repair path.
 
 ---
 

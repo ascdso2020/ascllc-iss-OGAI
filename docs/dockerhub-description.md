@@ -18,10 +18,10 @@ services:
     restart: unless-stopped
     shm_size: 2g
     cap_add:
-      - SYS_ADMIN
-      - SYS_PTRACE
+      - SYS_ADMIN   # Current browser profile for this release; hardening is separate
+      - SYS_PTRACE  # Debugging-related capability
     security_opt:
-      - seccomp=unconfined
+      - seccomp=unconfined  # Current browser profile for this release; hardening is separate
     ports:
       - "127.0.0.1:3001:3001"
     volumes:
@@ -44,7 +44,9 @@ That's it. Open your browser, sign in, start building.
 
 🌐 **CloudCLI Web UI** — Access your AI coding agents from your Docker host at `127.0.0.1:3001`
 
-🖥️ **Headless Browser** — Chromium + Xvfb + Playwright, pre-configured for screenshots, testing, and automation
+🖥️ **Headless Browser** — Chromium + Xvfb + Playwright 1.61.0, baked at build time with Playwright Chromium build 1228 for screenshots, testing, and automation
+
+📊 **Lighthouse** — Full image only
 
 🛠️ **50+ Dev Tools** — Node.js 26, Python 3, TypeScript, git, GitHub CLI, database clients (PostgreSQL, SQLite, Redis), deployment CLIs (Vercel, Wrangler, Netlify, Azure), and more
 

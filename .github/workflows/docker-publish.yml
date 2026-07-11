@@ -1,16 +1,25 @@
-name: HolyClaude — Build & Push to Docker Hub + GHCR
+name: HolyClaude - Docker release
 
 run-name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || github.workflow }}
 
 on:
   workflow_dispatch:
+    inputs:
+      published_version:
+        description: "Published HolyClaude version to smoke-test"
+        required: true
+        default: "1.4.8"
+        type: string
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 concurrency:
-  group: docker-${{ github.ref }}
-  cancel-in-progress: true
+  group: docker-publish-${{ github.ref_type == 'tag' && github.ref_name || github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 env:
   DOCKERHUB_IMAGE: coderluii/holyclaude
@@ -20,18 +29,56 @@ env:
 # - DOCKERHUB_USERNAME: Docker Hub account that owns coderluii/holyclaude
 # - DOCKERHUB_TOKEN: Docker Hub access token with read/write access to that repo
 # - GHCR_TOKEN: GitHub token with package write access for GHCR publishing
+#
+# Release publication is intentionally gated by native browser smoke tests, but
+# registry pushes are not transactionally atomic. Any failed gate stops manifest
+# promotion, Docker Hub description sync, and other release follow-up.
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  validate-release-tag:
+    if: github.event_name == 'push'
+    name: validate release tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - name: Require single-digit semver tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]\.[0-9]\.[0-9]$ ]]; then
+            echo "Release tag must match ^v[0-9]\\.[0-9]\\.[0-9]$" >&2
+            exit 1
+          fi
+
+  build-candidate:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    name: candidate (${{ matrix.variant }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    needs: validate-release-tag
     permissions:
       contents: read
       packages: write
 
     strategy:
-      max-parallel: 1
+      fail-fast: false
       matrix:
-        variant: [slim, full]
+        include:
+          - variant: full
+            arch: amd64
+            runner: ubuntu-24.04
+          - variant: full
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - variant: slim
+            arch: amd64
+            runner: ubuntu-24.04
+          - variant: slim
+            arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout
@@ -39,13 +86,11 @@ jobs:
 
       - name: Free up disk space
         run: |
+          set -euo pipefail
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
           sudo apt-get clean
-          docker system prune -af
+          docker system prune -af --volumes
           df -h
-
-      - name: Set up QEMU (multi-arch)
-        uses: docker/setup-qemu-action@v4.2.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.2.0
@@ -63,38 +108,623 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v6.2.0
-        with:
-          images: |
-            ${{ env.DOCKERHUB_IMAGE }}
-            ${{ env.GHCR_IMAGE }}
-          flavor: |
-            latest=false
-          tags: |
-            type=raw,value=latest,enable=${{ matrix.variant == 'full' }}
-            type=raw,value=slim,enable=${{ matrix.variant == 'slim' }}
-            type=semver,pattern={{version}},enable=${{ matrix.variant == 'full' }}
-            type=semver,pattern={{version}}-slim,enable=${{ matrix.variant == 'slim' }}
+      - name: Prepare candidate refs
+        id: refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA::12}"
+          candidate="candidate-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${short_sha}-${{ matrix.variant }}-${{ matrix.arch }}"
+          dockerhub_ref="${DOCKERHUB_IMAGE}:${candidate}"
+          ghcr_ref="${GHCR_IMAGE}:${candidate}"
+          {
+            echo "candidate=${candidate}"
+            echo "dockerhub_ref=${dockerhub_ref}"
+            echo "ghcr_ref=${ghcr_ref}"
+          } >> "${GITHUB_OUTPUT}"
 
-      - name: Build and push
+      - name: Build and push candidate
+        id: build
         uses: docker/build-push-action@v7.3.0
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/${{ matrix.arch }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ steps.refs.outputs.dockerhub_ref }}
+            ${{ steps.refs.outputs.ghcr_ref }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
           build-args: |
             VARIANT=${{ matrix.variant }}
-          cache-from: type=gha,scope=${{ matrix.variant }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}
+          cache-from: type=gha,scope=${{ matrix.variant }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-${{ matrix.arch }}
+
+      - name: Capture registry digests
+        id: digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p candidate-manifests
+
+          capture_platform_digest() {
+            local registry="$1"
+            local ref="$2"
+            local descriptor_path="candidate-manifests/${registry}-descriptor.json"
+            local manifest_path="candidate-manifests/${registry}-manifest.json"
+            local image_path="candidate-manifests/${registry}-image.json"
+            local digest
+
+            docker buildx imagetools inspect "${ref}" --format '{{json .Manifest}}' > "${descriptor_path}"
+            digest="$(DESCRIPTOR_PATH="${descriptor_path}" python3 - <<'PY'
+          import json
+          import os
+          import re
+
+          with open(os.environ["DESCRIPTOR_PATH"], encoding="utf-8") as f:
+              descriptor = json.load(f)
+
+          digest = descriptor.get("digest", "")
+          image_media_types = {
+              "application/vnd.docker.distribution.manifest.v2+json",
+              "application/vnd.oci.image.manifest.v1+json",
+          }
+          if descriptor.get("mediaType") not in image_media_types:
+              raise SystemExit(f"candidate is not a single-platform image manifest: {descriptor}")
+          if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+              raise SystemExit(f"invalid candidate manifest digest: {digest}")
+          print(digest)
+          PY
+          )"
+
+            docker buildx imagetools inspect "${ref}@${digest}" --raw > "${manifest_path}"
+            docker buildx imagetools inspect "${ref}@${digest}" --format '{{json .Image}}' > "${image_path}"
+            MANIFEST_PATH="${manifest_path}" IMAGE_PATH="${image_path}" EXPECTED_ARCH="${{ matrix.arch }}" python3 - <<'PY'
+          import json
+          import os
+
+          with open(os.environ["MANIFEST_PATH"], encoding="utf-8") as f:
+              manifest = json.load(f)
+          with open(os.environ["IMAGE_PATH"], encoding="utf-8") as f:
+              image = json.load(f)
+
+          image_media_types = {
+              "application/vnd.docker.distribution.manifest.v2+json",
+              "application/vnd.oci.image.manifest.v1+json",
+          }
+          if manifest.get("schemaVersion") != 2 or manifest.get("mediaType") not in image_media_types:
+              raise SystemExit(f"digest did not resolve to an image manifest: {manifest}")
+          if "manifests" in manifest or "config" not in manifest or "layers" not in manifest:
+              raise SystemExit("candidate digest resolved to an index or malformed image manifest")
+          if image.get("os") != "linux" or image.get("architecture") != os.environ["EXPECTED_ARCH"]:
+              raise SystemExit(f"candidate platform mismatch: {image.get('os')}/{image.get('architecture')}")
+          PY
+            printf '%s\n' "${digest}"
+          }
+
+          dockerhub_digest="$(capture_platform_digest dockerhub "${{ steps.refs.outputs.dockerhub_ref }}")"
+          ghcr_digest="$(capture_platform_digest ghcr "${{ steps.refs.outputs.ghcr_ref }}")"
+          {
+            echo "dockerhub_digest=${dockerhub_digest}"
+            echo "ghcr_digest=${ghcr_digest}"
+          } >> "${GITHUB_OUTPUT}"
+          printf 'Docker Hub candidate: %s@%s\n' "${{ steps.refs.outputs.dockerhub_ref }}" "${dockerhub_digest}"
+          printf 'GHCR candidate: %s@%s\n' "${{ steps.refs.outputs.ghcr_ref }}" "${ghcr_digest}"
+
+      - name: Smoke Docker Hub candidate digest
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          bash tests/browser_runtime_smoke.sh \
+            --image "${{ steps.refs.outputs.dockerhub_ref }}@${{ steps.digests.outputs.dockerhub_digest }}" \
+            --variant "${{ matrix.variant }}" \
+            --expected-arch "${{ matrix.arch }}"
+
+      - name: Smoke GHCR candidate digest
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          bash tests/browser_runtime_smoke.sh \
+            --image "${{ steps.refs.outputs.ghcr_ref }}@${{ steps.digests.outputs.ghcr_digest }}" \
+            --variant "${{ matrix.variant }}" \
+            --expected-arch "${{ matrix.arch }}"
+
+      - name: Write candidate evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 - <<'PY'
+          import json
+          import os
+
+          record = {
+              "variant": os.environ["VARIANT"],
+              "arch": os.environ["ARCH"],
+              "platform": f"linux/{os.environ['ARCH']}",
+              "dockerhub_ref": os.environ["DOCKERHUB_REF"],
+              "dockerhub_digest": os.environ["DOCKERHUB_DIGEST"],
+              "ghcr_ref": os.environ["GHCR_REF"],
+              "ghcr_digest": os.environ["GHCR_DIGEST"],
+          }
+          path = f"evidence/{record['variant']}-{record['arch']}.json"
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(record, f, indent=2, sort_keys=True)
+              f.write("\n")
+          PY
+        env:
+          VARIANT: ${{ matrix.variant }}
+          ARCH: ${{ matrix.arch }}
+          DOCKERHUB_REF: ${{ steps.refs.outputs.dockerhub_ref }}
+          DOCKERHUB_DIGEST: ${{ steps.digests.outputs.dockerhub_digest }}
+          GHCR_REF: ${{ steps.refs.outputs.ghcr_ref }}
+          GHCR_DIGEST: ${{ steps.digests.outputs.ghcr_digest }}
+
+      - name: Upload candidate evidence
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: candidate-evidence-${{ matrix.variant }}-${{ matrix.arch }}
+          path: evidence/${{ matrix.variant }}-${{ matrix.arch }}.json
+          if-no-files-found: error
+          retention-days: 14
+
+  promote:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    name: promote tested manifests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    needs:
+      - validate-release-tag
+      - build-candidate
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download candidate evidence
+        uses: actions/download-artifact@v8.0.1
+        with:
+          pattern: candidate-evidence-*
+          path: evidence
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.2.0
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Validate evidence and write promotion plan
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]\.[0-9]\.[0-9]$ ]]; then
+            echo "Release tag must match ^v[0-9]\\.[0-9]\\.[0-9]$" >&2
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          export VERSION="${version}"
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          evidence_dir = Path("evidence")
+          records = []
+          for path in sorted(evidence_dir.glob("*.json")):
+              with path.open(encoding="utf-8") as f:
+                  records.append(json.load(f))
+
+          if len(records) != 4:
+              raise SystemExit(f"expected exactly 4 evidence records, found {len(records)}")
+
+          expected_targets = {
+              ("full", "amd64"),
+              ("full", "arm64"),
+              ("slim", "amd64"),
+              ("slim", "arm64"),
+          }
+          seen_targets = {(record.get("variant"), record.get("arch")) for record in records}
+          if seen_targets != expected_targets:
+              raise SystemExit(f"unexpected target records: {sorted(seen_targets)}")
+
+          required = {
+              "variant",
+              "arch",
+              "platform",
+              "dockerhub_ref",
+              "dockerhub_digest",
+              "ghcr_ref",
+              "ghcr_digest",
+          }
+          for record in records:
+              missing = sorted(required - record.keys())
+              if missing:
+                  raise SystemExit(f"missing fields for {record}: {missing}")
+              if record["platform"] != f"linux/{record['arch']}":
+                  raise SystemExit(f"platform mismatch in {record}")
+              for registry in ("dockerhub", "ghcr"):
+                  digest = record[f"{registry}_digest"]
+                  if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+                      raise SystemExit(f"invalid {registry} digest in {record}")
+
+          dockerhub_digests = {record["dockerhub_digest"] for record in records}
+          ghcr_digests = {record["ghcr_digest"] for record in records}
+          if len(dockerhub_digests) != 4:
+              raise SystemExit("Docker Hub tested digests are not unique")
+          if len(ghcr_digests) != 4:
+              raise SystemExit("GHCR tested digests are not unique")
+
+          version = os.environ["VERSION"]
+          dockerhub_image = os.environ["DOCKERHUB_IMAGE"]
+          ghcr_image = os.environ["GHCR_IMAGE"]
+          by_variant = {"full": [], "slim": []}
+          for record in records:
+              by_variant[record["variant"]].append(record)
+          for value in by_variant.values():
+              value.sort(key=lambda record: record["arch"])
+
+          plan = {
+              "version": version,
+              "variants": {
+                  "full": {
+                      "dockerhub_tags": [f"{dockerhub_image}:latest", f"{dockerhub_image}:{version}"],
+                      "ghcr_tags": [f"{ghcr_image}:latest", f"{ghcr_image}:{version}"],
+                      "records": by_variant["full"],
+                  },
+                  "slim": {
+                      "dockerhub_tags": [f"{dockerhub_image}:slim", f"{dockerhub_image}:{version}-slim"],
+                      "ghcr_tags": [f"{ghcr_image}:slim", f"{ghcr_image}:{version}-slim"],
+                      "records": by_variant["slim"],
+                  },
+              },
+          }
+          Path("promotion").mkdir(exist_ok=True)
+          with open("promotion/plan.json", "w", encoding="utf-8") as f:
+              json.dump(plan, f, indent=2, sort_keys=True)
+              f.write("\n")
+          PY
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+        env:
+          DOCKERHUB_IMAGE: ${{ env.DOCKERHUB_IMAGE }}
+          GHCR_IMAGE: ${{ env.GHCR_IMAGE }}
+
+      - name: Promote tested digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > promotion/commands.sh
+          import json
+          import shlex
+
+          with open("promotion/plan.json", encoding="utf-8") as f:
+              plan = json.load(f)
+
+          print("set -euo pipefail")
+          for variant, spec in plan["variants"].items():
+              dockerhub_sources = [
+                  f"{record['dockerhub_ref']}@{record['dockerhub_digest']}"
+                  for record in spec["records"]
+              ]
+              ghcr_sources = [
+                  f"{record['ghcr_ref']}@{record['ghcr_digest']}"
+                  for record in spec["records"]
+              ]
+              for tag in spec["dockerhub_tags"]:
+                  args = ["docker", "buildx", "imagetools", "create", "-t", tag, *dockerhub_sources]
+                  print(" ".join(shlex.quote(arg) for arg in args))
+              for tag in spec["ghcr_tags"]:
+                  args = ["docker", "buildx", "imagetools", "create", "-t", tag, *ghcr_sources]
+                  print(" ".join(shlex.quote(arg) for arg in args))
+          PY
+          bash promotion/commands.sh
+
+      - name: Verify promoted manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > promotion/verify.sh
+          import json
+          import shlex
+
+          with open("promotion/plan.json", encoding="utf-8") as f:
+              plan = json.load(f)
+
+          print("set -euo pipefail")
+          print("mkdir -p promotion/manifests")
+          for variant, spec in plan["variants"].items():
+              for registry in ("dockerhub", "ghcr"):
+                  for tag in spec[f"{registry}_tags"]:
+                      safe = tag.replace("/", "_").replace(":", "_")
+                      print(
+                          "docker buildx imagetools inspect "
+                          f"{shlex.quote(tag)} --raw > {shlex.quote('promotion/manifests/' + safe + '.json')}"
+                      )
+                      print(
+                          "docker buildx imagetools inspect "
+                          f"{shlex.quote(tag)} --format '{{{{json .Manifest}}}}' > "
+                          f"{shlex.quote('promotion/manifests/' + safe + '-descriptor.json')}"
+                      )
+          PY
+          bash promotion/verify.sh
+          python3 - <<'PY'
+          import json
+          import re
+
+          with open("promotion/plan.json", encoding="utf-8") as f:
+              plan = json.load(f)
+
+          expected_arches = {"amd64", "arm64"}
+          image_media_types = {
+              "application/vnd.docker.distribution.manifest.v2+json",
+              "application/vnd.oci.image.manifest.v1+json",
+          }
+          index_media_types = {
+              "application/vnd.docker.distribution.manifest.list.v2+json",
+              "application/vnd.oci.image.index.v1+json",
+          }
+          verified_manifest_digests = {}
+          for variant, spec in plan["variants"].items():
+              for registry in ("dockerhub", "ghcr"):
+                  expected_digests = {
+                      record["arch"]: record[f"{registry}_digest"]
+                      for record in spec["records"]
+                  }
+                  tag_digests = []
+                  for tag in spec[f"{registry}_tags"]:
+                      safe = tag.replace("/", "_").replace(":", "_")
+                      with open(f"promotion/manifests/{safe}.json", encoding="utf-8") as f:
+                          manifest = json.load(f)
+                      with open(
+                          f"promotion/manifests/{safe}-descriptor.json",
+                          encoding="utf-8",
+                      ) as f:
+                          descriptor = json.load(f)
+
+                      digest = descriptor.get("digest", "")
+                      if descriptor.get("mediaType") not in index_media_types:
+                          raise SystemExit(f"{tag} did not resolve to an image index: {descriptor}")
+                      if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+                          raise SystemExit(f"{tag} has invalid manifest digest: {digest}")
+                      tag_digests.append(digest)
+
+                      manifests = manifest.get("manifests", [])
+                      if manifest.get("schemaVersion") != 2 or manifest.get("mediaType") not in index_media_types:
+                          raise SystemExit(f"{tag} is not a schema-2 image index")
+                      if len(manifests) != 2:
+                          raise SystemExit(f"{tag} has {len(manifests)} entries, expected exactly 2")
+
+                      actual = {}
+                      for entry in manifests:
+                          platform = entry.get("platform", {})
+                          os_name = platform.get("os")
+                          arch = platform.get("architecture")
+                          if entry.get("mediaType") not in image_media_types:
+                              raise SystemExit(f"{tag} contains a non-image entry: {entry}")
+                          if os_name != "linux" or arch not in expected_arches:
+                              raise SystemExit(f"{tag} contains unexpected platform {os_name}/{arch}")
+                          if arch in actual:
+                              raise SystemExit(f"{tag} contains duplicate linux/{arch} entries")
+                          actual[arch] = entry.get("digest")
+
+                      if set(actual) != expected_arches:
+                          raise SystemExit(f"{tag} has platforms {sorted(actual)}, expected {sorted(expected_arches)}")
+                      if actual != expected_digests:
+                          raise SystemExit(f"{tag} digest mismatch: {actual} != {expected_digests}")
+                  if len(set(tag_digests)) != 1:
+                      raise SystemExit(
+                          f"{registry} {variant} aliases resolve to different manifest digests: {tag_digests}"
+                      )
+                  verified_manifest_digests[(variant, registry)] = tag_digests[0]
+
+          final = {
+              "version": plan["version"],
+              "variants": {},
+          }
+          for variant, spec in plan["variants"].items():
+              final["variants"][variant] = {}
+              for registry in ("dockerhub", "ghcr"):
+                  final["variants"][variant][registry] = {
+                      "primary_tag": spec[f"{registry}_tags"][0],
+                      "all_tags": spec[f"{registry}_tags"],
+                      "manifest_digest": verified_manifest_digests[(variant, registry)],
+                      "platform_digests": {
+                          record["arch"]: record[f"{registry}_digest"]
+                          for record in spec["records"]
+                      },
+                  }
+          with open("promotion/final-digests.json", "w", encoding="utf-8") as f:
+              json.dump(final, f, indent=2, sort_keys=True)
+              f.write("\n")
+          PY
+
+      - name: Upload promotion evidence
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: promotion-evidence
+          path: |
+            promotion/plan.json
+            promotion/final-digests.json
+            promotion/manifests/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  post-publish-smoke:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    name: final smoke (${{ matrix.registry }}, ${{ matrix.variant }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    needs: promote
+    permissions:
+      contents: read
+      packages: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - registry: dockerhub
+            variant: full
+            arch: amd64
+            runner: ubuntu-24.04
+          - registry: dockerhub
+            variant: full
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - registry: dockerhub
+            variant: slim
+            arch: amd64
+            runner: ubuntu-24.04
+          - registry: dockerhub
+            variant: slim
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - registry: ghcr
+            variant: full
+            arch: amd64
+            runner: ubuntu-24.04
+          - registry: ghcr
+            variant: full
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - registry: ghcr
+            variant: slim
+            arch: amd64
+            runner: ubuntu-24.04
+          - registry: ghcr
+            variant: slim
+            arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Download promotion evidence
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: promotion-evidence
+          path: promotion
+
+      - name: Login to Docker Hub
+        if: matrix.registry == 'dockerhub'
+        uses: docker/login-action@v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: matrix.registry == 'ghcr'
+        uses: docker/login-action@v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Resolve final image digest
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "${GITHUB_OUTPUT}"
+          import json
+          import os
+
+          with open("promotion/final-digests.json", encoding="utf-8") as f:
+              final = json.load(f)
+          spec = final["variants"][os.environ["VARIANT"]][os.environ["REGISTRY"]]
+          digest = spec["platform_digests"][os.environ["ARCH"]]
+          ref = spec["primary_tag"]
+          print(f"ref={ref}")
+          print(f"digest={digest}")
+          PY
+        env:
+          REGISTRY: ${{ matrix.registry }}
+          VARIANT: ${{ matrix.variant }}
+          ARCH: ${{ matrix.arch }}
+
+      - name: Pull final image digest
+        run: |
+          set -euo pipefail
+          docker pull "${{ steps.image.outputs.ref }}@${{ steps.image.outputs.digest }}"
+
+      - name: Smoke final image digest
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          bash tests/browser_runtime_smoke.sh \
+            --image "${{ steps.image.outputs.ref }}@${{ steps.image.outputs.digest }}" \
+            --variant "${{ matrix.variant }}" \
+            --expected-arch "${{ matrix.arch }}"
+
+  published-browser-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    name: published smoke (${{ matrix.variant }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: full
+            arch: amd64
+            runner: ubuntu-24.04
+            image: coderluii/holyclaude:${{ inputs.published_version }}
+          - variant: full
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            image: coderluii/holyclaude:${{ inputs.published_version }}
+          - variant: slim
+            arch: amd64
+            runner: ubuntu-24.04
+            image: coderluii/holyclaude:${{ inputs.published_version }}-slim
+          - variant: slim
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            image: coderluii/holyclaude:${{ inputs.published_version }}-slim
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Pull published image
+        run: |
+          set -euo pipefail
+          docker pull "${{ matrix.image }}"
+
+      - name: Run published browser smoke
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          bash tests/browser_runtime_smoke.sh \
+            --image "${{ matrix.image }}" \
+            --variant "${{ matrix.variant }}" \
+            --expected-arch "${{ matrix.arch }}"
 
   update-dockerhub-description:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: post-publish-smoke
     permissions:
       contents: read
 
