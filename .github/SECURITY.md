@@ -60,7 +60,7 @@ The vendored CloudCLI version must stay at or above the fixes for:
 | `CVE-2026-31862` / `GHSA-f2fc-vc88-6w7q` | Authenticated command injection in Git-related endpoints | `1.24.0` |
 | `CVE-2026-31975` / `GHSA-gv8f-wpm2-m5wr` | WebSocket auth/JWT weakness with shell injection risk | `1.25.0` |
 
-HolyClaude v1.4.8 vendors CloudCLI `1.36.1`.
+HolyClaude v1.4.9 vendors CloudCLI `1.36.1`.
 
 ## Credential Storage
 

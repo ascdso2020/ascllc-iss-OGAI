@@ -4,6 +4,16 @@ All notable changes to HolyClaude will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.9] - 07/13/2026
+
+### Changed
+- Updated the Docker runtime from Node.js 26.4.0 to 26.5.0.
+- Updated `tsx` to 4.23.1, pnpm to 11.12.0, Vite to 8.1.4, ESLint to 10.7.0, Prettier to 3.9.5, Wrangler to 4.110.0, and Netlify CLI to 26.2.0.
+- Updated Gemini CLI to 0.50.0, Codex to 0.144.1, OpenCode to 1.17.18, and Pi Coding Agent to 0.80.6.
+- Updated tqdm to 4.68.4 and Uvicorn to 0.51.0.
+- Pinned GitHub Actions to the verified commits for their existing release versions.
+- Kept Playwright aligned at 1.61.0 for Node and Python, TypeScript at 6.0.3, Vercel at 54.21.0, CloudCLI at 1.36.1, and both bundled CloudCLI plugins at their current upstream commits.
+
 ## [1.4.8] - 07/11/2026
 
 ### Changed

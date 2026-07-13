@@ -138,7 +138,7 @@ exec Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp
 
 ### Browser Runtime
 
-v1.4.8 bakes the browser stack at build time:
+v1.4.9 keeps the browser stack baked at build time:
 
 - Playwright 1.61.0 is installed for both Node and Python
 - Playwright Chromium build 1228 is installed in both image variants for `amd64` and `arm64`

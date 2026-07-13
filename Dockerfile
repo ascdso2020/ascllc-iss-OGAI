@@ -7,7 +7,7 @@
 #   docker build --build-arg VARIANT=slim -t holyclaude:slim .
 # ==============================================================================
 
-FROM node:26.4.0-bookworm-slim
+FROM node:26.5.0-bookworm-slim@sha256:e999d087492c7227c85adc70574cf9d3cce774c3e6d7b8dfe473ee6b142c8f2c
 
 LABEL org.opencontainers.image.source=https://github.com/CoderLuii/HolyClaude
 
@@ -113,17 +113,17 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 # ---------- npm global packages (slim — always installed) ----------
 RUN PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i -g \
     playwright@1.61.0 \
-    typescript@6.0.3 tsx@4.23.0 \
-    pnpm@11.10.0 \
-    vite@8.1.3 esbuild@0.28.1 \
-    eslint@10.6.0 prettier@3.9.4 \
+    typescript@6.0.3 tsx@4.23.1 \
+    pnpm@11.12.0 \
+    vite@8.1.4 esbuild@0.28.1 \
+    eslint@10.7.0 prettier@3.9.5 \
     serve@14.2.6 nodemon@3.1.14 concurrently@10.0.3 \
     dotenv-cli@11.0.0
 
 # ---------- npm global packages (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
     npm i -g \
-      wrangler@4.107.0 vercel@54.21.0 netlify-cli@26.1.0 \
+      wrangler@4.110.0 vercel@54.21.0 netlify-cli@26.2.0 \
       pm2@7.0.3 \
       prisma@7.8.0 drizzle-kit@0.31.10 \
       eas-cli@20.5.1 \
@@ -140,7 +140,7 @@ RUN pip install --no-cache-dir --break-system-packages \
     pandas==3.0.3 numpy==2.4.6 \
     openpyxl==3.1.5 python-docx==1.2.0 \
     jinja2==3.1.6 pyyaml==6.0.3 python-dotenv==1.2.2 markdown==3.10.2 \
-    rich==15.0.0 click==8.4.2 tqdm==4.68.3 \
+    rich==15.0.0 click==8.4.2 tqdm==4.68.4 \
     'desloppify[full]==1.0' bandit==1.9.4 defusedxml==0.7.1 \
     tree-sitter==0.26.0 tree-sitter-language-pack==1.6.2 stevedore==5.9.0 \
     playwright==1.61.0 \
@@ -167,11 +167,11 @@ RUN if [ "$VARIANT" = "full" ]; then \
       xlsxwriter==3.2.9 xlrd==2.0.2 \
       matplotlib==3.11.0 seaborn==0.13.2 \
       python-pptx==1.0.2 \
-      fastapi==0.139.0 uvicorn==0.50.2; \
+      fastapi==0.139.0 uvicorn==0.51.0; \
     fi
 
 # ---------- AI CLI providers ----------
-RUN npm i -g @google/gemini-cli@0.49.0 @openai/codex@0.142.5 task-master-ai@0.43.1
+RUN npm i -g @google/gemini-cli@0.50.0 @openai/codex@0.144.1 task-master-ai@0.43.1
 USER claude
 RUN curl -fsSL https://cursor.com/install | bash && \
     if [ ! -e /home/claude/.local/bin/cursor ] && [ -e /home/claude/.local/bin/cursor-agent ]; then \
@@ -188,12 +188,12 @@ USER root
 
 # ---------- OpenCode CLI (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g opencode-ai@1.17.14; \
+    npm i -g opencode-ai@1.17.18; \
     fi
 
 # ---------- Pi Coding Agent (full only) ----------
 RUN if [ "$VARIANT" = "full" ]; then \
-    npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.80.3; \
+    npm i -g --ignore-scripts @earendil-works/pi-coding-agent@0.80.6; \
     fi
 
 ARG CLOUDCLI_VERSION=1.36.1

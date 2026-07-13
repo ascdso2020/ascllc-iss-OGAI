@@ -84,9 +84,12 @@ test('CloudCLI account-management artifact contains patched source runtime and c
     assert.ok(source.includes('authenticateWebSocket'), `${target} should keep WebSocket auth`);
   }
 
-  const { stdout } = await execFileAsync('find', [path.join(cloudcliRoot, 'dist/assets'), '-name', '*.js', '-print']);
+  const assetsRoot = path.join(cloudcliRoot, 'dist/assets');
+  const assetFiles = (await collectFiles(assetsRoot))
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => path.join(assetsRoot, file));
   const clientBundle = (await Promise.all(
-    stdout.trim().split('\n').filter(Boolean).map((file) => readFile(file, 'utf8'))
+    assetFiles.map((file) => readFile(file, 'utf8'))
   )).join('\n');
 
   assert.ok(clientBundle.includes('/api/auth/change-password'), 'client bundle should call change-password API');

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -34,6 +34,16 @@ async function unpackArtifact(artifactPath) {
   const unpackRoot = await mkdtemp(path.join(tmpdir(), 'holyclaude-cloudcli-account-'));
   await execFileAsync('tar', ['-xzf', artifactPath, '-C', unpackRoot]);
   return path.join(unpackRoot, 'package');
+}
+
+async function collectJavaScriptFiles(root) {
+  const files = [];
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const filePath = path.join(root, entry.name);
+    if (entry.isDirectory()) files.push(...await collectJavaScriptFiles(filePath));
+    else if (entry.name.endsWith('.js')) files.push(filePath);
+  }
+  return files;
 }
 
 test('CloudCLI account-management detector accepts generated HolyClaude bridge artifact', async () => {
@@ -70,10 +80,9 @@ test('CloudCLI account-management detector fails closed for an unsupported known
 test('CloudCLI account-management detector fails closed when the client bundle drifts', async () => {
   const cloudcliRoot = await unpackArtifact(bridgeTarball);
   const assetsDir = path.join(cloudcliRoot, 'dist/assets');
-  const { stdout } = await execFileAsync('find', [assetsDir, '-name', '*.js', '-print']);
   let assetPath = null;
   let source = '';
-  for (const candidate of stdout.trim().split('\n').filter(Boolean)) {
+  for (const candidate of await collectJavaScriptFiles(assetsDir)) {
     const candidateSource = await readFile(candidate, 'utf8');
     if (candidateSource.includes('/api/auth/change-password')) {
       assetPath = candidate;
